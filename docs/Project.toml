@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MicroVisualisations = "917c7318-673f-4690-bceb-ddd865398252"
+
+[sources]
+MicroVisualisations = {rev = "main", url = "https://github.com/grahamstark/MicroVisualisations.jl"}
