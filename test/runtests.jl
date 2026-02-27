@@ -84,6 +84,10 @@ include( "runner-functions.jl")
         dc = draw_deciles_barplot( summary; row=1, col=1, thumbnail=tn )
         save( joinpath( tmpdir, "deciles-barplot$(tns).svg"), dc )
         println( io, "<img src='deciles-barplot$(tns).svg'/>");
+
+        mh = draw_metrs_hist( results; thumbnail=tn)
+        save( joinpath( tmpdir, "metrs-hist$(tns).svg"), mh )
+        println( io, "<img src='metrs-hist$(tns).svg'/>");
     end
 
     println( io, "<h2>Costs Headlines</h2>\n", format_overall_cost(

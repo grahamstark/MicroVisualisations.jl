@@ -4,7 +4,7 @@ const GOLDEN_RATIO = 1.618
 
 function make_default_fig(; thumbnail = false, double_height=false, square=false )::Figure
     x,fontsize = if thumbnail
-        200,
+        400,
         10
     else
         2100,
@@ -88,6 +88,8 @@ function draw_hbai_clone!(
     return ax
 end
 
+
+
 """
 * `results` STBOutput main results dump (incomes individual)
 * `summary` STBOutput results summary dump (means, medians)
@@ -154,16 +156,16 @@ end
 
 
 function draw_deciles_barplot!( f::Figure, summary::NamedTuple; row=1, col=1, percentages = false, thumbnail=false )
+    dch, ylabel = if percentages
+        100.0 .* (summary.deciles[2][:, 4] .- summary.deciles[1][:, 4]) ./ summary.deciles[1][:, 4],
+        "% Change"
+    else
+        summary.deciles[2][:, 4] .- summary.deciles[1][:, 4],
+        "Change in £s per week"
+    end
     ax = if thumbnail
         Axis(f[row,col] )
     else
-        dch, ylabel = if percentages
-            100.0 .* (summary.deciles[2][:, 4] .- summary.deciles[1][:, 4]) ./ summary.deciles[1][:, 4],
-            "% Change"
-        else
-            summary.deciles[2][:, 4] .- summary.deciles[1][:, 4],
-            "Change in £s per week"
-        end
         Axis(f[row,col]; title="Income Changes By Decile",
             ylabel=ylabel, xlabel="Decile" )
     end
@@ -176,7 +178,7 @@ end
 
 function draw_deciles_barplot( summary::NamedTuple; row=1, col=1, percentages = false, thumbnail=false )
     f = make_default_fig(;thumbnail=thumbnail)
-    draw_deciles_barplot!( f, summary; row=row, col=col, percentages = percentages )
+    draw_deciles_barplot!( f, summary; row=row, col=col, percentages = percentages, thumbnail=thumbnail )
     f
 end
 
@@ -492,7 +494,9 @@ function draw_bc( settings::Settings, title :: String, df1 :: DataFrame, df2 :: 
     end
     # b1 points
     scatter!( ax, df2.gross, df2.net, markersize=5, color=POST_COLOUR )
-    axislegend(;position = :rc)
+    if ! thumbnail
+        axislegend(;position = :rc)
+    end
     f
 end
 
@@ -537,7 +541,7 @@ end
 
 function draw_lorenz_curve( popshare::Vector, incshare_pre::Vector, incshare_post::Vector; row=1, col=1, thumbnail=false )
     f = make_default_fig(;thumbnail=thumbnail)
-    ax1 = draw_lorenz_curve!( f, popshare, incshare_pre, incshare_post )
+    ax1 = draw_lorenz_curve!( f, popshare, incshare_pre, incshare_post, thumbnail=thumbnail )
     return f
 end
 
