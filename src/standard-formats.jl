@@ -20,6 +20,7 @@ fp(v::Number) = format( v*100, precision=1 )*"%"
 fc(v::Number) = format( v, precision=0, commas=true )
 fpw(v::Number) = "£"*format( v, precision=2, commas=true )
 fpa(v::Number) = "£"*format( v, precision=0, commas=true )
+gft(v::Vector) = Format.format.(v./1000; precision=0, commas=true).*"k"
 
 function fb(v::Number)
     if v ≈ 0

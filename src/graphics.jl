@@ -1,7 +1,22 @@
 # 2nd bit is opacity
 
-function gft(v::Vector) 
-    return Format.format.(v./1000; precision=0, commas=true).*"k"
+const GOLDEN_RATIO = 1.618
+
+function make_default_fig(; thumbnail = false, double_height=false, square=false )::Figure
+    x,fontsize = if thumbnail
+        200,
+        10
+    else
+        2100,
+        25
+    end
+    y = Int( floor( x/GOLDEN_RATIO))
+    if double_height
+        y *= 2
+    elseif square
+        y = x
+    end
+    return Figure(size=(x,y), fontsize = fontsize, fonts = (; regular = "Gill Sans"))
 end
 
 """
@@ -122,7 +137,7 @@ function draw_hbai_thumbnail(
     sysno::Int,
     measure::Symbol,
     colours )
-    f = Figure(fontsize = 10, fonts = (; regular = "Gill Sans"))
+    f = make_default_fig(;thumbnail=true)
     draw_hbai_thumbnail!(
         f,
         results,
@@ -137,6 +152,62 @@ function draw_hbai_thumbnail(
     f
 end
 
+
+function draw_deciles_barplot!( f::Figure, summary::NamedTuple; row=1, col=1, percentages = false, thumbnail=false )
+    ax = if thumbnail
+        Axis(f[row,col] )
+    else
+        dch, ylabel = if percentages
+            100.0 .* (summary.deciles[2][:, 4] .- summary.deciles[1][:, 4]) ./ summary.deciles[1][:, 4],
+            "% Change"
+        else
+            summary.deciles[2][:, 4] .- summary.deciles[1][:, 4],
+            "Change in £s per week"
+        end
+        Axis(f[row,col]; title="Income Changes By Decile",
+            ylabel=ylabel, xlabel="Decile" )
+    end
+    maxy = max( 1.0, maximum(dch))
+    miny = min( -1.0, minimum(dch))
+    ylims!( ax, miny, maxy )
+    barplot!( ax, dch)
+    ax
+end
+
+function draw_deciles_barplot( summary::NamedTuple; row=1, col=1, percentages = false, thumbnail=false )
+    f = make_default_fig(;thumbnail=thumbnail)
+    draw_deciles_barplot!( f, summary; row=row, col=col, percentages = percentages )
+    f
+end
+
+function draw_metrs_hist!( f::Figure, results :: NamedTuple; row=1, col=1, thumbnail=false )::Axis
+    ax = if thumbnail
+        Axis(f[row,col])
+    else
+        Axis(f[row,col]; title="METRs", xlabel="%", ylabel="")
+    end
+    for i in 1:2 # fixme multiple systems
+        ind = results.indiv[i]
+        m1=ind[.! ismissing.(ind.metr),:]
+        m1.metr = Float64.( m1.metr ) # Coerce away from missing type.
+        m1.metr = min.( 200.0, m1.metr )
+        label, colour = if i == 1
+            "Before", PRE_COLOUR
+        else
+            "After", POST_COLOUR
+        end
+        density!( ax, m1.metr; label, weights=m1.weight, color=colour)
+    end
+    return ax
+end
+
+function draw_metrs_hist( results :: NamedTuple; row=1, col=1, thumbnail=false )::Axis
+    f = make_default_fig(;thumbnail=thumbnail)
+    draw_metrs_hist!( f, results; row=row, col=col, thumbnail=thumbnail )
+    f
+end
+
+
 """
 * `results` STBOutput main results dump (incomes individual)
 * `summary` STBOutput results summary dump (means, medians)
@@ -145,7 +216,7 @@ function draw_summary_graphs(
     settings::Settings,  
     results :: NamedTuple, 
     summary :: NamedTuple )::Figure
-    f = Figure(fontsize = 10, fonts = (; regular = "Gill Sans"))
+    f = make_default_fig(;)
     ax1 = draw_hbai_thumbnail!( f, results, summary;
         title="Income Distribution - Before",
         col = 1,
@@ -164,28 +235,9 @@ function draw_summary_graphs(
         colours=POST_COLOURS)
     linkxaxes!( ax1, ax2 )
     linkyaxes!( ax1, ax2 )
-    ax3 = Axis(f[1,2]; title="Income Changes By Decile", 
-        ylabel="% Change", xlabel="Decile" )
-    ax3
-    dch = 100.0 .* (summary.deciles[2][:, 4] .- summary.deciles[1][:, 4]) ./ summary.deciles[1][:, 4]
-    maxy = max( 1.0, maximum(dch))
-    miny = min( -1.0, minimum(dch))
-    ylims!( ax3, miny, maxy )
-    barplot!( ax3, dch)
+    ax3 = draw_deciles_barplot!( f, summary; row=1, col=2, percentages = false )
     if settings.do_marginal_rates 
-        ax4 = Axis(f[2,2]; title="METRs", xlabel="%", ylabel="")
-        for i in 1:2
-            ind = results.indiv[i]
-            m1=ind[.! ismissing.(ind.metr),:]
-            m1.metr = Float64.( m1.metr ) # Coerce away from missing type.
-            m1.metr = min.( 200.0, m1.metr )
-            label, colour = if i == 1
-                "Before", PRE_COLOUR
-            else 
-                "After", POST_COLOUR
-            end
-            density!( ax4, m1.metr; label, weights=m1.weight, color=colour)
-        end
+        ax4 = draw_metrs_hist!( f, results; row=2, col=2 )
     end
     f
 end
@@ -198,15 +250,15 @@ function draw_hbai_graphs(
     settings::Settings,
     results :: NamedTuple, 
     summary :: NamedTuple )
-    hbaif2 = Figure(size=(2100,2970), fontsize = 25, fonts = (; regular = "Gill Sans"))
-    ax1 = draw_hbai_clone!( hbaif2, results, summary;
+    f = make_default_fig(;double_height=true)
+    ax1 = draw_hbai_clone!( f, results, summary;
         title="Incomes: Pre",
         subtitle=INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure ],
         sysno = 1,
         bandwidth=10, # £10 steps - £20 looks prettier but the deciles don't line up so well
         measure=Symbol(string(settings.ineq_income_measure )),
         colours=PRE_COLOURS)
-    ax2 = draw_hbai_clone!( hbaif2, results, summary;
+    ax2 = draw_hbai_clone!( f, results, summary;
         title="Incomes: Post",
         subtitle=INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure ],
         sysno = 2,
@@ -215,8 +267,7 @@ function draw_hbai_graphs(
         colours=POST_COLOURS)
     linkxaxes!( ax1, ax2 )
     linkyaxes!( ax1, ax2 )
-    fname = joinpath( settings.output_dir, basiccensor( settings.run_name ), "hbai-clone.svg" ) 
-    save( fname, hbaif2 )
+    f
 end 
 
 function make_rate_bins( 
@@ -333,6 +384,9 @@ function draw_tax_rates(
     r = T[] # copy(rates) .* 100
     nr = length(rates)
     nb = length(bands)
+    if nr == nb
+        nb -= 1
+    end # skip top band if set to a big number
     band = 0.0
     for i in 1:nr
         push!(b,band)
@@ -360,8 +414,8 @@ function draw_taxable_graph(
 	results :: NamedTuple, 
     summary :: NamedTuple, 
     systems :: Vector )
-	f = Figure(size=(2100,2970), fontsize = 25, fonts = (; regular = "Gill Sans"))	
-	ax1,endb1 = draw_incomes_vs_bands!(
+	f = make_default_fig(;double_height=true)
+    ax1,endb1 = draw_incomes_vs_bands!(
 		f;
 		rates = systems[1].it.non_savings_rates,
 		bands = systems[1].it.non_savings_thresholds,
@@ -406,41 +460,46 @@ end
 # convoluted way of making pairs of (0,-10),(0,10) for label offsets
 const OFFSETS = collect( Iterators.flatten(fill([(0,-10),(0,10)],50)))
 
-function draw_bc( settings::Settings, title :: String, df1 :: DataFrame, df2 :: DataFrame )::Figure
-    f = Figure(size=(1200,1200))
+function draw_bc( settings::Settings, title :: String, df1 :: DataFrame, df2 :: DataFrame; thumbnail=false )::Figure
+    f = make_default_fig(;square=true, thumbnail=thumbnail )
     nrows1,ncols1 = size(df1)
     nrows2,ncols2 = size(df2)
     xmax = max( maximum(df1.gross), maximum(df2.gross))*1.1
     ymax = max( maximum(df1.net), maximum(df2.net))*1.1
     ymin = min( minimum(df1.net), minimum(df2.net))
-    ax = Axis(f[1,1]; xlabel="Earnings £s pw",
+    ax = if thumbnail
+        Axis(f[1,1])
+    else
+        Axis(f[1,1]; xlabel="Earnings £s pw",
         ylabel=TARGET_BC_INCOMES_STRS[settings.target_bc_income]*" £s pw",
         title=title)
+    end
     ylims!( ax, 0, ymax )
     xlims!( ax, -10, xmax )
     # diagonal gross=net
     lines!( ax, [0,xmax], [0, ymax]; color=:lightgrey)
     # bc 1 lines
-    lines!( ax, df1.gross, df1.net, color=:darkred, label="Pre"  )
+    lines!( ax, df1.gross, df1.net, color=PRE_COLOUR, label="Pre"  )
     # b1 labels
-    scatter!( ax, df1.gross, df1.net; marker=df1.char_labels, marker_offset=OFFSETS[1:nrows1], markersize=15, color=:darkred,  )
     # b1 points
-    scatter!( ax, df1.gross, df1.net, markersize=5, color=:darkred )
+    scatter!( ax, df1.gross, df1.net, markersize=5, color=PRE_COLOUR )
     # bc 1 lines
-    lines!( ax, df2.gross, df2.net; color=:darkblue, label="Post" )
+    lines!( ax, df2.gross, df2.net; color=POST_COLOUR, label="Post" )
     # b1 labels
-    scatter!( ax, df2.gross, df2.net; marker=df2.char_labels, marker_offset=OFFSETS[1:nrows2], markersize=15, color=:darkblue )
+    if ! thumbnail
+        scatter!( ax, df1.gross, df1.net; marker=df1.char_labels, marker_offset=OFFSETS[1:nrows1], markersize=15, color=PRE_COLOUR,  )
+        scatter!( ax, df2.gross, df2.net; marker=df2.char_labels, marker_offset=OFFSETS[1:nrows2], markersize=15, color=POST_COLOUR )
+    end
     # b1 points
-    scatter!( ax, df2.gross, df2.net, markersize=5, color=:darkblue )
+    scatter!( ax, df2.gross, df2.net, markersize=5, color=POST_COLOUR )
     axislegend(;position = :rc)
-
     f
 end
 
 
 
-function draw_mr_hists( systems :: Vector, results :: NamedTuple )
-    f = Figure()
+function draw_mr_hists( systems :: Vector, results :: NamedTuple; thumbnail=false )
+    f = make_default_fig(;thumbnail=thumbnail)
     ax = Axis(f[1,1],
         title="Marginal Effective Tax Rates",
         xlabel=" METRs(%)",
@@ -458,39 +517,32 @@ function draw_mr_hists( systems :: Vector, results :: NamedTuple )
     f
 end
 
-function draw_lorenz_curve!( f::Figure, popshare::Vector, incshare_pre::Vector, incshare_post::Vector )::Axis
-    ax1 = Axis(f[1,1]; title="Lorenz Curve", xlabel="Population Share", ylabel="Income Share")
-    insert!(popshare,1,0)
-    insert!(incshare_pre,1,0)
-    insert!(incshare_post,1,0)
-    lines!(ax1, popshare, incshare_pre; label="Before", color=(:lightsteelblue, 1))
-    lines!(ax1,popshare,incshare_post; label="After", color=(:gold2, 1))
-    lines!(ax1,[0,1],[0,1]; color=:grey)
-    ax1
+function draw_lorenz_curve!( f::Figure, popshare::Vector, incshare_pre::Vector, incshare_post::Vector; row=1, col=1, thumbnail=false )::Axis
+    ax = if thumbnail
+        Axis(f[row,col])
+    else
+        Axis(f[row,col]; title="Lorenz Curve", xlabel="Population Share", ylabel="Income Share")
+    end
+    ps = copy(popshare)
+    ispre = copy(incshare_pre)
+    ispost = copy(incshare_post)
+    insert!(ps,1,0)
+    insert!(ispre,1,0)
+    insert!(ispost,1,0)
+    lines!(ax, ps, ispre; label="Before", color=(:lightsteelblue, 1))
+    lines!(ax,ps,ispost; label="After", color=(:gold2, 1))
+    lines!(ax,[0,1],[0,1]; color=:grey)
+    ax
 end
 
-function draw_lorenz_curve(  popshare::Vector, incshare_pre::Vector, incshare_post::Vector )
-    f = Figure()
+function draw_lorenz_curve( popshare::Vector, incshare_pre::Vector, incshare_post::Vector; row=1, col=1, thumbnail=false )
+    f = make_default_fig(;thumbnail=thumbnail)
     ax1 = draw_lorenz_curve!( f, popshare, incshare_pre, incshare_post )
     return f
 end
 
-function draw_deciles_barplot!( f::Figure, summary::NamedTuple; row=1, col=2 )
-    ax2 = Axis(f[row,col]; title="Income Changes By Decile",
-        ylabel="Change in £s per week", xlabel="Decile" )
-    dch = summary.deciles[2][:, 4] .- summary.deciles[1][:, 4]
-    barplot!( ax2, dch)
-    ax2
-end
-
-function draw_deciles_barplot( summary::NamedTuple; row=1, col=1 )
-    f = Figure()
-    draw_deciles_barplot!( f, summary; row, col )
-    f
-end
-
 function draw_summary_graphs_v2( settings::Settings, data::NamedTuple, summary :: NamedTuple )::Figure
-    f = Figure()
+    f = make_default_fig(;)
     ax1 = draw_lorenz_curve!( f,
         summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2] )
     ax2 = draw_deciles_barplot!( f, summary; row=1, col=2 )
@@ -514,9 +566,6 @@ function draw_summary_graphs_v2( settings::Settings, data::NamedTuple, summary :
             density!( ax4, m1.metr; label, weights=m1.weight, color=colour)
         end
     end
-    fname = joinpath( settings.output_dir, basiccensor( settings.run_name ), "summary_graph.svg" )
-    save(fname, f)
-
     f
 end
 

@@ -28,6 +28,7 @@ include( "runner-functions.jl")
 @testset "MicroVisualisations.jl" begin
     # save your tests here.
     tmpdir = tempdir()
+
     summary, results, settings, sys = do_dummy_run()
     io = open( joinpath( tmpdir, "main-output.html"), "w")
     println(io,
@@ -49,20 +50,6 @@ include( "runner-functions.jl")
     # hh = examples[3]
     wage = 20.0
     bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
-
-
-    bcp = draw_bc( settings, "BC Test", bc1, bc2 )
-    save( joinpath( tmpdir, "bcp.svg"), bcp )
-    println( io, "<img src='bcp.svg'/>");
-
-    hbt = draw_hbai_thumbnail( results, summary; title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=POST_COLOURS)
-    save( joinpath( tmpdir, "hbai_thumbnail.svg"), hbt )
-    println( io, "<img src='hbai_thumbnail.svg'/>");
-
-    tg = draw_taxable_graph( settings, results, summary, [sys[1],sys[2]] )
-    save( joinpath( tmpdir, "taxable_graph.svg"), tg )
-    println( io, "<img src='taxable_graph.svg'/>");
-
     sg = draw_summary_graphs( settings, results, summary )
     save( joinpath( tmpdir, "summary_graphs.svg"), sg )
     println( io, "<img src='summary_graphs.svg'/>");
@@ -71,13 +58,29 @@ include( "runner-functions.jl")
     save( joinpath( tmpdir, "summary_graphs-v2.svg"), sg2 )
     println( io, "<img src='summary_graphs-v2.svg'/>");
 
-    lc = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2] )
-    save( joinpath( tmpdir, "lorenz-curve.svg"), lc )
-    println( io, "<img src='lorenz-curve.svg'/>");
+    tg = draw_taxable_graph( settings, results, summary, [sys[1],sys[2]] )
+    save( joinpath( tmpdir, "taxable_graph.svg"), tg )
+    println( io, "<img src='taxable_graph.svg'/>");
 
-    dc = draw_deciles_barplot( summary; row=1, col=1 )
-    save( joinpath( tmpdir, "deciles-barplot.svg"), dc )
-    println( io, "<img src='deciles-barplot.svg'/>");
+
+    for tn in [false,true]
+        tns = tn ? "-thumbnail" : ""
+        bcp = draw_bc( settings, "BC Test", bc1, bc2, thumbnail=tn )
+        save( joinpath( tmpdir, "bcp$(tns).svg"), bcp )
+        println( io, "<img src='bcp$(tns).svg'/>");
+
+        hbt = draw_hbai_thumbnail( results, summary; thumbnail=tn, title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=POST_COLOURS)
+        save( joinpath( tmpdir, "hbai$(tns).svg"), hbt )
+        println( io, "<img src='hbai$(tns).svg'/>");
+
+        lc = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=tn )
+        save( joinpath( tmpdir, "lorenz-curve$(tns).svg"), lc )
+        println( io, "<img src='lorenz-curve$(tns).svg'/>");
+
+        dc = draw_deciles_barplot( summary; row=1, col=1, thumbnail=tn )
+        save( joinpath( tmpdir, "deciles-barplot$(tns).svg"), dc )
+        println( io, "<img src='deciles-barplot$(tns).svg'/>");
+    end
 
     println( io, "<h2>Costs Headlines</h2>\n", format_overall_cost(
         summary.income_summary[1],
@@ -94,7 +97,7 @@ include( "runner-functions.jl")
     println( io, "<h2>Inequality Summary</h2>\n", format_ineq_table(
         summary.inequality[1],
         summary.inequality[2]))
-    println( io, "<h2>METRs Table</h2>\n", format_mr_table( summary.metrs[1], summary.metrs[1] ))
+    println( io, "<h2>METRs Table</h2>\n", format_mr_table( summary.metrs[1], summary.metrs[2] ))
     # println( io, format_pers_inc_table( results ))
     println( io, "<h2>Poverty Table</h2>\n", format_pov_table( summary.poverty[1],
         summary.poverty[2],
