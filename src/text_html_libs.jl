@@ -551,3 +551,40 @@ function format_bc_df( title::String, bc::DataFrame)
         alignment=[fill(:r,3)...,:l] )
     return String(take!(io))
 end
+
+"""
+A Named Tuple with all the formatted outputs (except the budget constraints).
+
+"""
+function construct_html( settings::Settings, results::NamedTuple, summary::NamedTuple )::NamedTuple
+    return (;
+        overall_cost_table = format_overall_cost(
+            summary.income_summary[1],
+            summary.income_summary[2]),
+        costs_table = format_costs_table(
+            summary.income_summary[1],
+            summary.income_summary[2]),
+        hhtype_gl = format_gainlose("By Household Size",summary.gain_lose[2].hhtype_gl ),
+        ten_gl = format_gainlose("By Tenure Type",summary.gain_lose[2].ten_gl ),
+        dec_gl = format_gainlose("By Tenure Type",summary.gain_lose[2].dec_gl ),
+        children_gl = format_gainlose("By Numbers of Children",summary.gain_lose[2].children_gl ),
+        reg_gl = format_gainlose("By Region",summary.gain_lose[2].reg_gl ),
+        sfc = format_sfc("SFC Behavioral Corrections", results.behavioural_results[2]),
+        gain_lose_summary = format_gain_lose_table_v2( summary.gain_lose[2] ),
+        # println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
+        inequality_summary = format_ineq_table(
+            summary.inequality[1],
+            summary.inequality[2]),
+        metrs_table = format_mr_table( summary.metrs[1], summary.metrs[2] ),
+        poverty_summary = format_pov_table( summary.poverty[1],
+            summary.poverty[2],
+            summary.child_poverty[1],
+            summary.child_poverty[2]),
+        poverty_transitions = format_pov_transitions( summary.povtrans_matrix[2]),
+        run_settings_summary = format_run_settings_summary( settings ),
+        detailed_costs = detailed_cost_dataframe(
+                summary.income_summary[1],
+                summary.income_summary[2])
+        )
+
+end

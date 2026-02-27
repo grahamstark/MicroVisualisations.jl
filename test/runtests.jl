@@ -120,4 +120,9 @@ include( "runner-functions.jl")
                 summary.income_summary[2] )))
 
     close(io)
+
+    images = construct_images( settings, results, summary, sys )
+    htmls = construct_html( settings, results, summary )
+    @show images
+    @show htmls
 end

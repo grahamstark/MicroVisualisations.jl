@@ -203,7 +203,7 @@ function draw_metrs_hist!( f::Figure, results :: NamedTuple; row=1, col=1, thumb
     return ax
 end
 
-function draw_metrs_hist( results :: NamedTuple; row=1, col=1, thumbnail=false )::Axis
+function draw_metrs_hist( results :: NamedTuple; row=1, col=1, thumbnail=false )::Figure
     f = make_default_fig(;thumbnail=thumbnail)
     draw_metrs_hist!( f, results; row=row, col=col, thumbnail=thumbnail )
     f
@@ -577,4 +577,21 @@ function fig_to_svg_string( f::Figure)::AbstractString
    buf = IOBuffer()
    show(buf, MIME"image/svg+xml"(), f)
    return String(take!(buf))
+end
+
+"""
+A Named Tuple with all the graphical outputs (except the budget constraints).
+"""
+function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple
+    return (;
+        summary_graphs = draw_summary_graphs( settings, results, summary ),
+        summary_graphs_v2 = draw_summary_graphs_v2( settings, results, summary ),
+        taxable_graph = draw_taxable_graph( settings, results, summary, sys ),
+        hbai = draw_hbai_graphs( settings, results, summary ),
+        lorenz_curve = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
+        lorenz_curve_thumb = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
+        deciles = draw_deciles_barplot( summary; thumbnail=false ),
+        deciles_thumb = draw_deciles_barplot( summary; thumbnail=true ),
+        metrs_hist = draw_metrs_hist( results; thumbnail=false ),
+        metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
 end
