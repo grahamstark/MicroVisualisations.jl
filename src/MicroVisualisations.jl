@@ -58,7 +58,6 @@ export
       draw_deciles_barplot,
       draw_hbai_thumbnail,
       draw_hbai_graphs,
-
       draw_incomes_vs_bands,
       draw_lorenz_curve,
       draw_summary_graphs,
