@@ -62,16 +62,20 @@ include( "runner-functions.jl")
     save( joinpath( tmpdir, "taxable_graph.svg"), tg )
     println( io, "<img src='taxable_graph.svg'/>");
 
+    hbt = draw_hbai_thumbnail( results, summary; title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=POST_COLOURS)
+    save( joinpath( tmpdir, "hbai-thumbnail.svg"), hbt )
+    println( io, "<img src='hbai-thumbnail.svg'/>");
+
+    hbc = draw_hbai_graphs( settings, results, summary )
+    save( joinpath( tmpdir, "hbai.svg"), hbc )
+    println( io, "<img src='hbai.svg'/>");
+
 
     for tn in [false,true]
         tns = tn ? "-thumbnail" : ""
         bcp = draw_bc( settings, "BC Test", bc1, bc2, thumbnail=tn )
         save( joinpath( tmpdir, "bcp$(tns).svg"), bcp )
         println( io, "<img src='bcp$(tns).svg'/>");
-
-        hbt = draw_hbai_thumbnail( results, summary; thumbnail=tn, title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=POST_COLOURS)
-        save( joinpath( tmpdir, "hbai$(tns).svg"), hbt )
-        println( io, "<img src='hbai$(tns).svg'/>");
 
         lc = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=tn )
         save( joinpath( tmpdir, "lorenz-curve$(tns).svg"), lc )
