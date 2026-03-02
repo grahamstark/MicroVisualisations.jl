@@ -11,6 +11,7 @@ using ArgCheck
 using Colors
 using CSV
 using DataFrames
+using DataStructures
 using Dates
 using Format
 using CairoMakie
@@ -48,6 +49,8 @@ using ScottishTaxBenefitModel.Utils
 using ScottishTaxBenefitModel.Weighting
 
 export
+      GRAPHICS_ITEMS,
+      HTML_ITEMS,
       PRE_COLOUR,
       POST_COLOUR,
       PRE_COLOURS,

@@ -579,6 +579,19 @@ function fig_to_svg_string( f::Figure)::AbstractString
    return String(take!(buf))
 end
 
+const GRAPHICS_ITEMS = OrderedDict([
+        :summary_graphs => "",
+        :summary_graphs_v2 => "",
+        :taxable_graph => "draw_taxable_graph( settings, results, summary, sys )",
+        :hbai => "draw_hbai_graphs( settings, results, summary )",
+        :lorenz_curve => "draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false )",
+        :lorenz_curve_thumb => "draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false )",
+        :deciles => "draw_deciles_barplot( summary; thumbnail=false )",
+        :deciles_thumb => "draw_deciles_barplot( summary; thumbnail=true )",
+        :metrs_hist => "draw_metrs_hist( results; thumbnail=false )",
+        :metrs_hist_thumb => "draw_metrs_hist( results; thumbnail=true )"] )
+])
+
 """
 A Named Tuple with all the graphical outputs (except the budget constraints).
 """
