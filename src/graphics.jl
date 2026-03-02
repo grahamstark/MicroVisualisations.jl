@@ -589,8 +589,7 @@ const GRAPHICS_ITEMS = OrderedDict([
         :deciles => "draw_deciles_barplot( summary; thumbnail=false )",
         :deciles_thumb => "draw_deciles_barplot( summary; thumbnail=true )",
         :metrs_hist => "draw_metrs_hist( results; thumbnail=false )",
-        :metrs_hist_thumb => "draw_metrs_hist( results; thumbnail=true )"] )
-])
+        :metrs_hist_thumb => "draw_metrs_hist( results; thumbnail=true )"])
 
 """
 A Named Tuple with all the graphical outputs (except the budget constraints).
