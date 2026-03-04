@@ -521,11 +521,15 @@ function draw_mr_hists( systems :: Vector, results :: NamedTuple; thumbnail=fals
     f
 end
 
-function draw_lorenz_curve!( f::Figure, popshare::Vector, incshare_pre::Vector, incshare_post::Vector; row=1, col=1, thumbnail=false )::Axis
-    ax = if thumbnail
-        Axis(f[row,col])
+function draw_lorenz_curve!( f::Figure, popshare::AbstractVector, incshare_pre::AbstractVector, incshare_post::AbstractVector; row=1, col=1, thumbnail=false )::Axis
+    ax, linewidth, labels = if thumbnail
+        Axis(f[row,col]),
+        4,
+        [nothing,nothing]
     else
-        Axis(f[row,col]; title="Lorenz Curve", xlabel="Population Share", ylabel="Income Share")
+        Axis(f[row,col]; title="Lorenz Curve", xlabel="Population Share", ylabel="Income Share"),
+        2,
+        ["Pre", "Post"]
     end
     ps = copy(popshare)
     ispre = copy(incshare_pre)
@@ -533,13 +537,13 @@ function draw_lorenz_curve!( f::Figure, popshare::Vector, incshare_pre::Vector, 
     insert!(ps,1,0)
     insert!(ispre,1,0)
     insert!(ispost,1,0)
-    lines!(ax, ps, ispre; label="Before", color=(:lightsteelblue, 1))
-    lines!(ax,ps,ispost; label="After", color=(:gold2, 1))
-    lines!(ax,[0,1],[0,1]; color=:grey)
+    lines!(ax, ps, ispre; label=labels[1], color=(:darkblue, 1), linewidth = linewidth)
+    lines!(ax,ps,ispost; label=labels[2], color=(:darkorange, 1), linewidth = linewidth)
+    lines!(ax,[0,1],[0,1]; color=:grey, linewidth=linewidth)
     ax
 end
 
-function draw_lorenz_curve( popshare::Vector, incshare_pre::Vector, incshare_post::Vector; row=1, col=1, thumbnail=false )
+function draw_lorenz_curve( popshare::AbstractVector, incshare_pre::AbstractVector, incshare_post::AbstractVector; row=1, col=1, thumbnail=false )
     f = make_default_fig(;thumbnail=thumbnail)
     ax1 = draw_lorenz_curve!( f, popshare, incshare_pre, incshare_post, thumbnail=thumbnail )
     return f
