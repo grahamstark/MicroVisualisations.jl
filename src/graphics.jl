@@ -469,31 +469,33 @@ function draw_bc( settings::Settings, title :: String, df1 :: DataFrame, df2 :: 
     xmax = max( maximum(df1.gross), maximum(df2.gross))*1.1
     ymax = max( maximum(df1.net), maximum(df2.net))*1.1
     ymin = min( minimum(df1.net), minimum(df2.net))
-    ax = if thumbnail
-        Axis(f[1,1])
+    ax, linewidth = if thumbnail
+        Axis(f[1,1]),
+        4
     else
         Axis(f[1,1]; xlabel="Earnings £s pw",
         ylabel=TARGET_BC_INCOMES_STRS[settings.target_bc_income]*" £s pw",
-        title=title)
+        title=title),
+        2
     end
     ylims!( ax, 0, ymax )
     xlims!( ax, -10, xmax )
+    precol = (PRE_COLOUR[1],1.0)
+    postcol = (POST_COLOUR[1],1.0)
     # diagonal gross=net
     lines!( ax, [0,xmax], [0, ymax]; color=:lightgrey)
-    # bc 1 lines
-    lines!( ax, df1.gross, df1.net, color=PRE_COLOUR, label="Pre"  )
-    # b1 labels
-    # b1 points
-    scatter!( ax, df1.gross, df1.net, markersize=5, color=PRE_COLOUR )
-    # bc 1 lines
-    lines!( ax, df2.gross, df2.net; color=POST_COLOUR, label="Post" )
-    # b1 labels
+    # bc pre lines
+    lines!( ax, df1.gross, df1.net, color=PRE_COLOUR_BOLD, label="Pre", linewidth=linewidth   )
+    scatter!( ax, df1.gross, df1.net, markersize=5, color=PRE_COLOUR_BOLD)
+    # bc post lines
+    lines!( ax, df2.gross, df2.net; color=POST_COLOUR_BOLD, label="Post", linewidth=linewidth )
+    scatter!( ax, df2.gross, df2.net, markersize=5, color=POST_COLOUR_BOLD  )
+    #  labels
     if ! thumbnail
-        scatter!( ax, df1.gross, df1.net; marker=df1.char_labels, marker_offset=OFFSETS[1:nrows1], markersize=15, color=PRE_COLOUR,  )
-        scatter!( ax, df2.gross, df2.net; marker=df2.char_labels, marker_offset=OFFSETS[1:nrows2], markersize=15, color=POST_COLOUR )
+        scatter!( ax, df1.gross, df1.net; marker=df1.char_labels, marker_offset=OFFSETS[1:nrows1], markersize=15, color=PRE_COLOUR_BOLD,  )
+        scatter!( ax, df2.gross, df2.net; marker=df2.char_labels, marker_offset=OFFSETS[1:nrows2], markersize=15, color=POST_COLOUR_BOLD )
     end
     # b1 points
-    scatter!( ax, df2.gross, df2.net, markersize=5, color=POST_COLOUR )
     if ! thumbnail
         axislegend(;position = :rc)
     end
@@ -537,9 +539,12 @@ function draw_lorenz_curve!( f::Figure, popshare::AbstractVector, incshare_pre::
     insert!(ps,1,0)
     insert!(ispre,1,0)
     insert!(ispost,1,0)
-    lines!(ax, ps, ispre; label=labels[1], color=(:darkblue, 1), linewidth = linewidth)
-    lines!(ax,ps,ispost; label=labels[2], color=(:darkorange, 1), linewidth = linewidth)
+    lines!(ax, ps, ispre; label=labels[1], color=PRE_COLOUR_BOLD, linewidth = linewidth)
+    lines!(ax,ps,ispost; label=labels[2], color=POST_COLOUR_BOLD, linewidth = linewidth)
     lines!(ax,[0,1],[0,1]; color=:grey, linewidth=linewidth)
+    if ! thumbnail
+        axislegend(;position = :rc)
+    end
     ax
 end
 

@@ -89,6 +89,7 @@ replacement_rate_hours = 30
 target_nation = "N_Scotland"
 to_q = 1
 to_y = 2026
+requested_threads = 6
 upper_multiple = 6
 use_shs = true
 wealth_method = "matching"

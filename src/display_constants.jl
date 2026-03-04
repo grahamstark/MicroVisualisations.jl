@@ -8,6 +8,9 @@ const POST_COLOURS = [(:peachpuff, 0.5) (:peachpuff3,0.5)]
 const PRE_COLOUR = (:lightsteelblue, 0.5)
 const POST_COLOUR = (:gold2, 0.5)
 
+const PRE_COLOUR_BOLD = (:darkblue, 1)
+const POST_COLOUR_BOLD = (:darkorange, 1)
+
 function format_and_class( change :: Real ) :: Tuple
     gnum = format( abs(change), commas=true, precision=2 )
     glclass = "";
