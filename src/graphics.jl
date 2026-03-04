@@ -192,6 +192,7 @@ function draw_metrs_hist!( f::Figure, results :: NamedTuple; row=1, col=1, thumb
         ind = results.indiv[i]
         m1=ind[.! ismissing.(ind.metr),:]
         m1.metr = Float64.( m1.metr ) # Coerce away from missing type.
+        # jam infinites off
         m1.metr = min.( 200.0, m1.metr )
         label, colour = if i == 1
             "Before", PRE_COLOUR
@@ -199,6 +200,9 @@ function draw_metrs_hist!( f::Figure, results :: NamedTuple; row=1, col=1, thumb
             "After", POST_COLOUR
         end
         density!( ax, m1.metr; label, weights=m1.weight, color=colour)
+    end
+    if ! thumbnail
+        axislegend(;position = :rt)
     end
     return ax
 end
