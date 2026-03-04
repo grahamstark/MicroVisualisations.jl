@@ -54,6 +54,7 @@ include( "runner-functions.jl")
     save( joinpath( tmpdir, "summary_graphs.svg"), sg )
     println( io, "<img src='summary_graphs.svg'/>");
 
+
     sg2 = draw_summary_graphs_v2( settings, results, summary )
     save( joinpath( tmpdir, "summary_graphs-v2.svg"), sg2 )
     println( io, "<img src='summary_graphs-v2.svg'/>");
@@ -125,4 +126,7 @@ include( "runner-functions.jl")
     htmls = construct_html( settings, results, summary )
     @show images
     @show htmls
+    summary_strings = format_headline_numbers( summary.headline_figures[2] )
+    @show summary_strings
+
 end
