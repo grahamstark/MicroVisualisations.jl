@@ -61,6 +61,7 @@ function format_sfc( title::String, sf :: DataFrame )
         formatters=[fm3], 
         alignment=[:l,fill(:r,11)...],
         highlighters = [ht],
+        table_class="table table-sm table-striped table-responsive",
         title = title,
         column_labels=[[
             "Taxable Income",
@@ -93,6 +94,7 @@ function format_gainlose(title::String, gl::DataFrame)
         alignment=[:l,fill(:r,7)...],
         highlighters = [h1,h7],
         title = title,
+        table_class="table table-sm table-striped table-responsive", # bootstrap it
         column_labels=["",
             "Lose £10.01+",
             "Lose £1.01-£10",
