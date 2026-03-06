@@ -33,7 +33,7 @@ const COST_LABELS = [
     "Wealth Taxes" ]
 
 const MR_LABELS = 
-    ["Negative or Zero",
+    ["Negative",
      "Under 10%", 
      "10-20%", 
      "20-30%", 
