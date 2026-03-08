@@ -111,9 +111,9 @@ function frame_to_table(
         colour = ""
         if (up_is_good[i] !== 0) && (! (r.Change ≈ 0))
             if r.Change > 0
-                colour = up_is_good[i] == 1 ? "change-good" : "change-bad"
+                colour = up_is_good[i] == 1 ? "text-success" : "text-danger"
              else
-                colour = up_is_good[i] == 1 ? "change-bad" : "change-good"
+                colour = up_is_good[i] == 1 ? "text-danger" : "text-success"
             end # neg diff   
         end # non zero diff
         ds = r.Change ≈ 0 ? "-" : format(r.Change, commas=true, precision=prec )

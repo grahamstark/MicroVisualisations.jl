@@ -28,8 +28,10 @@ end
 
 
 h1 = HtmlHighlighter( ( data, r, c ) -> (c == 1), ["font_weight"=>"bold", "color"=>"slategrey"])
-# HtmlDecoration( font_weight="bold", color="slategrey"))
 
+"""
+fixme change this to set class text-success/text-warn
+"""
 function f_gainlose( h, data, r, c ) 
     colour = "black"
     if c >= 7 # av, pct cols at end
