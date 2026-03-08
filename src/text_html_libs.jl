@@ -7,7 +7,7 @@ function thing_table(
     v2::Vector, 
     up_is_good::Vector{Int} )
 
-    table = "<table class='table'>"
+    table = "<table class='table table-striped table-responsive'>"
     table *= "<thead>
         <tr>
             <th></th><th>Before</th><th>After</th><th>Change</th>
@@ -37,7 +37,7 @@ end
 function costs_frame_to_table(
     df :: DataFrame )
     caption = "Values in £m pa; numbers of individuals paying or receiving."
-    table = "<table class='table table-sm'>"
+    table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
         <tr>
             <th></th><th colspan='2'>Before</th><th colspan='2'>After</th><th colspan=2>Change</th>            
@@ -98,7 +98,7 @@ function frame_to_table(
     prec :: Int = 2, 
     caption :: String = "",
     totals_col :: Int = -1 )
-    table = "<table class='table table-sm'>"
+    table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
         <tr>
             <th></th><th style='text-align:right'>Before</th><th style='text-align:right'>After</th><th style='text-align:right'>Change</th>            
@@ -219,7 +219,7 @@ function format_gain_lose_table_v2( gl :: NamedTuple )
     gainpct = md_format(100*gl.gainers/gl.popn)
     ncpct = md_format(100*gl.nc/gl.popn)
     caption = "Individuals living in households where net income has risen, fallen, or stayed the same respectively."
-    table = "<table class='table table-sm'>"
+    table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
         <tr>
             <th></th><th style='text-align:right'></th><th style='text-align:right'>%</th>
@@ -290,7 +290,7 @@ function format_hh_summary( hh :: Household )
         hc = format(hh.mortgage_payment, commas=true, precision=2)
         rm = "Mortgage"
     end
-    table = "<table class='table table-sm'>"
+    table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
         <tr>
             <th></th><th style='text-align:right'></th>
