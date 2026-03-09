@@ -78,7 +78,7 @@ end
 
 function format_and_class_semi( change :: Real; divisor=1.0, up_is_good=true, formatter=fpw ) :: NamedTuple
     num_str = formatter( change )
-    abs_num_str = formatter( abs(change ))
+    unsigned_num_str = formatter( abs(change ))
     change /= divisor
     dch = if up_is_good
         change
@@ -137,7 +137,7 @@ function format_and_class_full(; pre::Number, post::Number, up_is_good :: Bool, 
     pct_change_str,
     unsigned_pct_change_str,
     change_str,
-    unsigned_change_str  = if abs(pct_change) > 0.01
+    unsigned_change_str = if abs(pct_change) > 0.01
         format( pct_change, precision=1 )*"%",
         format( abs(pct_change), precision=1 )*"%",
         formatter( delta ),

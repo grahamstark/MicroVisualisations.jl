@@ -46,6 +46,9 @@ include( "runner-functions.jl")
     </head>
     <body>
 """)
+    headlinesjs = format_headline_numbers( summary.headline_figures[2] )
+    println(io, headlinesjs )
+
     hh = FRSHouseholdGetter.get_household(100)
     # hh = examples[3]
     wage = 20.0

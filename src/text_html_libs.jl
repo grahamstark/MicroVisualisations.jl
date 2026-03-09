@@ -215,9 +215,9 @@ function format_gain_lose_table_v2( gl :: NamedTuple )
     lose = format(gl.losers, commas=true, precision=0)
     gain = format(gl.gainers, commas=true, precision=0)
     nc = format(gl.nc, commas=true, precision=0)
-    losepct = md_format(100*gl.losers/gl.popn)
-    gainpct = md_format(100*gl.gainers/gl.popn)
-    ncpct = md_format(100*gl.nc/gl.popn)
+    losepct = fp(gl.losers/gl.popn)
+    gainpct = fp(gl.gainers/gl.popn)
+    ncpct = fp(gl.nc/gl.popn)
     caption = "Individuals living in households where net income has risen, fallen, or stayed the same respectively."
     table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
@@ -376,7 +376,9 @@ function format_headline_numbers( headlines :: NamedTuple )
         net_direct = format_and_class_semi( headlines.net_direct; divisor=1_000_000, up_is_good=false, formatter=fm))
 end
 
-
+"""
+FIXME this has a dependency to PlutoExtras
+"""
 function make_short_summary( summary :: NamedTuple )::NamedTuple
     r1 = summary.income_summary[1][1,:]
     r2 = summary.income_summary[2][1,:]
