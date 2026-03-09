@@ -66,6 +66,8 @@ export
       draw_incomes_vs_bands,
       draw_lorenz_curve,
       draw_metrs_hist,
+      draw_metrs,
+      draw_metrs2,
       draw_summary_graphs,
       draw_summary_graphs_v2,
       draw_tax_rates,

@@ -71,6 +71,13 @@ include( "runner-functions.jl")
     save( joinpath( tmpdir, "hbai.svg"), hbc )
     println( io, "<img src='hbai.svg'/>");
 
+    metg = draw_metrs( settings, results )
+    save( joinpath( tmpdir, "metg.svg"), metg )
+    println( io, "<img src='metg.svg'/>");
+
+    metg2 = draw_metrs2( settings, results )
+    save( joinpath( tmpdir, "metg2.svg"), metg2 )
+    println( io, "<img src='metg2.svg'/>");
 
     for tn in [false,true]
         tns = tn ? "-thumbnail" : ""

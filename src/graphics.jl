@@ -62,7 +62,7 @@ function draw_hbai_clone!(
     measure::Symbol, 
     colours )
     edges = collect(0:bandwidth:2200)
-    ih = summary.income_hists[sysno]
+    ih = summary.income_hists[sysno] # this holds means & medians
     ax = Axis( f[sysno,1], 
         title=title, 
         subtitle=subtitle,
@@ -88,6 +88,131 @@ function draw_hbai_clone!(
     return ax
 end
 
+function draw_metrs!(
+    f :: Figure,
+    results :: NamedTuple;
+    title   :: AbstractString,
+    bandwidth=1.0,
+    sysno::Int,
+    colour
+    )
+    edges = collect(0:bandwidth:120)
+    ax = Axis( f[sysno,1],
+              title=title,
+              xlabel="Marginal Effective Tax Rates (METRS) (%) in $(bandwidth)% bands.",
+              ylabel="Counts",
+              ytickformat = gft)
+    indiv = results.indiv[sysno]
+    # these 2 convoluted lines make this draw only
+    # over the non-missing (children, retired)
+    # poss. not needed for makie?
+    p = collect(keys(skipmissing( indiv.metr )))
+    indp = indiv[p,[:metr, :weight]] # just non missing
+    indp.metr = Float64.(indp.metr) # median doesn't like union{missing,..}
+    # dups?
+    indp.metr = min.(120.0, indp.metr )
+    indp.metr = max.(0.0, indp.metr )
+    mmean = mean( indp.metr, Weights( indp.weight ))
+    mmedian = median( indp.metr, Weights( indp.weight ))
+    @show indp mmean mmedian
+    h = hist!(ax,
+              indp.metr;
+              weights=indp.weight,
+              bins=edges,
+              color = colour )
+    mheight=1_300_000 # *bandwidth # arbitrary height for mean/med lines
+    v1 = lines!( ax, [mmean,mmean], [0, mheight]; color=:chocolate4, label="Mean $(gf2(mmean))%", linestyle=:dash )
+    v2 = lines!( ax, [mmedian,mmedian], [0, mheight]; color=:grey16, label="Median $(gf2(mmedian))%", linestyle=:dash )
+    axislegend(ax)
+    return ax # not really needed?
+end
+
+function draw_metrs2!(
+    f :: Figure,
+    results :: NamedTuple;
+    title   :: AbstractString,
+    bandwidth=1.0,
+    colours
+    )
+    edges = collect(0:bandwidth:120)
+    ax = Axis( f[1,1],
+              title=title,
+              xlabel="Marginal Effective Tax Rates (METRS) (%) in $(bandwidth)% bands.",
+              ylabel="Counts",
+              ytickformat = gft)
+    mheight=1_300_000 # *bandwidth # arbitrary height for mean/med lines
+    for sysno in 1:2
+        indiv = results.indiv[sysno]
+        # these 2 convoluted lines make this draw only
+        # over the non-missing (children, retired)
+        # poss. not needed for makie?
+        p = collect(keys(skipmissing( indiv.metr )))
+        indp = indiv[p,[:metr, :weight]] # just non missing
+        indp.metr = Float64.(indp.metr) # median doesn't like union{missing,..}
+        # dups?
+        indp.metr = min.(120.0, indp.metr )
+        indp.metr = max.(0.0, indp.metr )
+        mmean = mean( indp.metr, Weights( indp.weight ))
+        mmedian = median( indp.metr, Weights( indp.weight ))
+        prepoststr,colour,boldcolour = if sysno == 1
+            "Pre",
+            PRE_COLOUR,
+            PRE_COLOUR_BOLD
+        else
+            "Post",
+            POST_COLOUR,
+            POST_COLOUR_BOLD
+        end
+            h = hist!(ax,
+                  indp.metr;
+                  weights=indp.weight,
+                  bins=edges,
+                  label = "METRs - $(prepoststr)",
+                  color = colour )
+        v1 = lines!( ax, [mmean,mmean], [0, mheight]; color=boldcolour, label="Mean - $(prepoststr): $(gf2(mmean))%", linestyle=:solid )
+        v2 = lines!( ax, [mmedian,mmedian], [0, mheight]; color=boldcolour, label="Median - $(prepoststr): $(gf2(mmedian))%", linestyle=:dot )
+    end
+    axislegend(ax)
+    return ax # not really needed?
+end
+
+"""
+* `results` STBOutput main results dump (incomes individual)
+* `summary` STBOutput results summary dump (means, medians)
+"""
+function draw_metrs2(
+    settings::Settings,
+    results :: NamedTuple )::Figure
+f = make_default_fig()
+ax1 = draw_metrs2!( f, results;
+                  title="METRs",
+                  bandwidth=1,
+                  colours=[PRE_COLOUR,POST_COLOUR])
+f
+end
+
+"""
+* `results` STBOutput main results dump (incomes individual)
+* `summary` STBOutput results summary dump (means, medians)
+"""
+function draw_metrs(
+    settings::Settings,
+    results :: NamedTuple )::Figure
+    f = make_default_fig(;double_height=true)
+    ax1 = draw_metrs!( f, results;
+                           title="METRs: Pre",
+                           sysno = 1,
+                           bandwidth=2,
+                           colour=PRE_COLOUR)
+    ax2 = draw_metrs!( f, results;
+                           title="METRs: Post",
+                           sysno = 2,
+                           bandwidth=2,
+                           colour=POST_COLOUR)
+    linkxaxes!( ax1, ax2 )
+    linkyaxes!( ax1, ax2 )
+    f
+end
 
 
 """
@@ -592,6 +717,7 @@ function fig_to_svg_string( f::Figure)::AbstractString
    return String(take!(buf))
 end
 
+#  TODO
 const GRAPHICS_ITEMS = OrderedDict([
         :summary_graphs => "",
         :summary_graphs_v2 => "",
@@ -601,6 +727,7 @@ const GRAPHICS_ITEMS = OrderedDict([
         :lorenz_curve_thumb => "draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false )",
         :deciles => "draw_deciles_barplot( summary; thumbnail=false )",
         :deciles_thumb => "draw_deciles_barplot( summary; thumbnail=true )",
+        :metrs => "draw_metrs_hist( results; thumbnail=false )",
         :metrs_hist => "draw_metrs_hist( results; thumbnail=false )",
         :metrs_hist_thumb => "draw_metrs_hist( results; thumbnail=true )"])
 
@@ -618,5 +745,6 @@ function construct_images( settings::Settings, results::NamedTuple, summary::Nam
         deciles = draw_deciles_barplot( summary; thumbnail=false ),
         deciles_thumb = draw_deciles_barplot( summary; thumbnail=true ),
         metrs_hist = draw_metrs_hist( results; thumbnail=false ),
+        metrs = draw_metrs( settings, results ),
         metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
 end
