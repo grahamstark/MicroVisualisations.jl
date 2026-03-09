@@ -73,12 +73,15 @@ function costs_dataframe(  incs1 :: DataFrame, incs2 :: DataFrame ) :: DataFrame
     return d
 end
 
-function mr_dataframe( mr1::Histogram, mr2::Histogram, mean1::Real, mean2 :: Real ) :: DataFrame
+function mr_dataframe( mr1::Histogram, mr2::Histogram, mean1::Real, mean2 :: Real, median1::Real, median2 :: Real ) :: DataFrame
     println( "mr1.weights=$(mr1.weights) mean1=$mean1")
     change = mr2.weights - mr1.weights
     df = DataFrame( Item=MR_LABELS, Before=mr1.weights, After=mr2.weights, Change=change)
     mchange = mean2 - mean1
-    push!( df, (Item="Average METR", Before=mean1, After=mean2, Change=mchange ))
+    medchange = median2 - median1
+    push!( df, (Item="Mean METR", Before=mean1, After=mean2, Change=mchange ))
+    push!( df, (Item="Median METR", Before=median1, After=median2, Change=medchange ))
+
     return df
 end
 

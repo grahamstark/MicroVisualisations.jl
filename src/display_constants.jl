@@ -1,5 +1,5 @@
 
-const MR_UP_GOOD = [1,0,0,0,0,0,0,-1,-1]
+const MR_UP_GOOD = [1,0,0,0,0,0,0,-1,-1,-1]
 const COST_UP_GOOD = [1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,1]
 
 const PRE_COLOURS = [(:lightsteelblue3, 0.5) (:lightslategray,0.5)]

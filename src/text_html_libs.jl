@@ -97,7 +97,7 @@ function frame_to_table(
     up_is_good :: Vector{Int},
     prec :: Int = 2, 
     caption :: String = "",
-    totals_col :: Int = -1 )
+    totals_col :: Int = 9999999 )
     table = "<table class='table table-sm table-striped table-responsive'>"
     table *= "<thead>
         <tr>
@@ -120,7 +120,7 @@ function frame_to_table(
         if ds != "-" && r.Change > 0
             ds = "+$(ds)"
         end 
-        row_style = i == totals_col ? "class='text-bold table-info' " : ""
+        row_style = i >= totals_col ? "class='text-bold table-info' " : ""
         b = format(r.Before, commas=true, precision=prec)
         a = format(r.After, commas=true, precision=prec)
         row = "<tr $row_style><th class='text-left' align='left'>$(r.Item)</th>
@@ -175,14 +175,14 @@ function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame ) :: String
 end
 
 function format_mr_table( mr1, mr2 )
-    df = mr_dataframe( mr1.hist, mr2.hist, mr1.mean, mr2.mean )
+    df = mr_dataframe( mr1.hist, mr2.hist, mr1.mean, mr2.mean, mr1.median, mr2.median )
     n = size(df)[1]
     table = frame_to_table( 
         df, 
         prec=0, 
         up_is_good=MR_UP_GOOD, 
         caption="",
-        totals_col = n )   
+        totals_col = n-1 )
     return table
 end
 
