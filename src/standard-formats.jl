@@ -115,7 +115,7 @@ function format_and_class_semi( change :: Real; divisor=1.0, up_is_good=true, fo
     else
         "text-body"
     end
-    (; num_str, glclass, arrow, abs_num_str )
+    (; num_str, glclass, arrow, unsigned_num_str )
 end
 
 function format_and_class( change::Real )::Tuple

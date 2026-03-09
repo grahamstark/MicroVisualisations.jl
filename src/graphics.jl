@@ -728,6 +728,7 @@ const GRAPHICS_ITEMS = OrderedDict([
         :deciles => "draw_deciles_barplot( summary; thumbnail=false )",
         :deciles_thumb => "draw_deciles_barplot( summary; thumbnail=true )",
         :metrs => "draw_metrs_hist( results; thumbnail=false )",
+        :metrs2 => "draw_metrs_hist( results; thumbnail=false )",
         :metrs_hist => "draw_metrs_hist( results; thumbnail=false )",
         :metrs_hist_thumb => "draw_metrs_hist( results; thumbnail=true )"])
 
@@ -746,5 +747,6 @@ function construct_images( settings::Settings, results::NamedTuple, summary::Nam
         deciles_thumb = draw_deciles_barplot( summary; thumbnail=true ),
         metrs_hist = draw_metrs_hist( results; thumbnail=false ),
         metrs = draw_metrs( settings, results ),
+        metrs2 = draw_metrs2( settings, results ),
         metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
 end
