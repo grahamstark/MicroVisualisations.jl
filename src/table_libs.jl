@@ -32,17 +32,6 @@ const COST_LABELS = [
     "Scottish Benefits",
     "Wealth Taxes" ]
 
-const MR_LABELS = 
-    ["Negative",
-     "Under 10%", 
-     "10-20%", 
-     "20-30%", 
-     "30-50%", 
-     "50-80%", 
-     "80-100%", 
-     "Above 100%"]
-
-
 function extract_incs( d :: DataFrame, targets :: Vector{Symbol}, row = 1 ) :: Vector
     n = length( targets )[1]
     out = zeros(n)
@@ -76,7 +65,7 @@ end
 function mr_dataframe( mr1::Histogram, mr2::Histogram, mean1::Real, mean2 :: Real, median1::Real, median2 :: Real ) :: DataFrame
     println( "mr1.weights=$(mr1.weights) mean1=$mean1")
     change = mr2.weights - mr1.weights
-    df = DataFrame( Item=MR_LABELS, Before=mr1.weights, After=mr2.weights, Change=change)
+    df = DataFrame( Item=METR_TABLE_BREAK_LABELS, Before=mr1.weights, After=mr2.weights, Change=change)
     mchange = mean2 - mean1
     medchange = median2 - median1
     push!( df, (Item="Mean METR", Before=mean1, After=mean2, Change=mchange ))
