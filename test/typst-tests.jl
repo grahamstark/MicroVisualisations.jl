@@ -1,6 +1,8 @@
-using PrettyTables
-using DataFrames
-using Format
+module TransTables
+
+using Format,DataFrames
+
+export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE
 
 const labels = ["V.Deep (<=30%)",
               "Deep (<=40%)",
@@ -8,9 +10,10 @@ const labels = ["V.Deep (<=30%)",
               "Near Poverty (<=80%)",
               "Not in Poverty",
              "Total"]
-const BEFORE = [""*3]
 
-
+"""
+midstring("hello",7) -> ["","","","hello","","",""]
+"""
 function midstring(s,len)
     l1 = len÷2
     l2 = len - l1 - 1
@@ -37,8 +40,6 @@ function rgbstr( hex :: String )::String
     return "rgb( $(r)%, $(g)%, $(b)%)"
 end
 
-
-
 const sevcols = [
         "#ee0000",
         "#cc2222",
@@ -47,26 +48,108 @@ const sevcols = [
         "#333333",
         "#333333"]
 
-const RGB_SEVCOLS = rgbstr.(sevcols)
+# for prettytables
+function fm(v, r, c)
+    return if c in [1,2] || r in [1,2]
+        v
+    elseif v == 0
+        "-"
+    else
+        Format.format(v, precision=0, commas=true)
+    end
+end
 
-const TEST_MAT = rand(1:1000,6,6)
 
 function makedf()
     m = rand(1:100_000,6,6)
     d = DataFrame(m,labels)
-    insertcols!(d,1,:l1=>midstring("After",6))
+    insertcols!(d,1,:l1=>midstring("Before",6))
     insertcols!(d,2,:pre=>labels)
     pushfirst!(d, ["", "", labels...]; promote=true)
+    pushfirst!(d, midstring( "After", 8 ); promote=true)
 end
 
-const test_df = makedf()
 
-BG_WHITE = rgbstr( "#ffffff")
-BG_NEUTRAL = rgbstr( "#dddddd")
-BG_WORSEN = rgbstr( "#ffccbb")
-BG_IMPROVE = rgbstr( "#bbffdd")
+BG_WHITE = "#ffffff"
+BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
+BG_WORSEN = "#f8d7da" # danger
+BG_IMPROVE = "#d1e7dd" # success
 
-const TYP_NO_BORDERS = TypstTableBorders(
+module HTMLTabs
+
+using Main.TransTables
+using PrettyTables
+using DataFrames
+using Format
+
+function f_tablebody( h, data, r, c )::Vector{Pair{String,String}}
+    d = Pair{String,String}[]
+    datacol = c - 2
+    datarow = r - 2
+    bgcolour = if c <= 2 || r <= 2
+        BG_WHITE
+    elseif (datacol == 6) || (datarow == 6) || (datacol == datarow)
+        BG_NEUTRAL
+    elseif datarow > datacol
+        BG_WORSEN
+    elseif datacol > datarow
+        BG_IMPROVE
+    end
+    @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
+    push!(d, "background" => bgcolour)
+    # if r == 0 # size( sf )[1]
+    if datarow in [0,6] && datacol > 0 # bottom col totals and top 2nd labels from col colour
+        push!(d, "color" => sevcols[datacol])
+    elseif datarow > 0
+        push!(d, "color" => sevcols[datarow])
+    end
+    # end
+
+    if(c in [1,2,8]) || (r in [1,2,8]) # bold row & col headers
+        push!(d, "font-weight" => "bold")
+    end
+    # push!(d, "stretch"=>"75%")
+    return d
+end
+
+const TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
+const BODY_HL = HtmlHighlighter( (data, r, c)->true,  f_tablebody ) #
+
+function pt(df :: DataFrame)
+    io = IOBuffer()
+    pretty_table(io,
+                df;
+                backend=:html,
+                stand_alone = false,
+                table_class = "table table-sm",
+                # merge_column_label_cells = :auto,
+                column_labels=fill("",8), # turn off labels
+                table_format=TABLE_FMT,
+                highlighters = [BODY_HL],
+                # style=TYP_TABLE_STYLE,
+                formatters=[fm] )
+    return String(take!(io))
+end
+
+end # module
+
+module TypstTabs
+
+using Main.TransTables
+
+using PrettyTables
+using DataFrames
+using Format
+using Typstry
+
+const RGB_SEVCOLS = rgbstr.(sevcols)
+
+BG_WHITE = rgbstr( TransTables.BG_WHITE )
+BG_NEUTRAL = rgbstr( TransTables.BG_NEUTRAL )
+BG_WORSEN = rgbstr( TransTables.BG_WORSEN )
+BG_IMPROVE = rgbstr( TransTables.BG_IMPROVE )
+
+const NO_BORDERS = TypstTableBorders(
 
         top_line="0pt",
         header_line = "0pt",
@@ -76,35 +159,35 @@ const TYP_NO_BORDERS = TypstTableBorders(
         left_line = "0pt",
         center_line = "0pt",
         right_line = "0pt" )
-const TYP_TABLE_FMT= TypstTableFormat(borders=TYP_NO_BORDERS, vertical_lines_at_data_columns= :none)
-const COL_FILLS = ["text-fill"=>"black"] #, "text-fill"=>"black", ("text-fill"=>x for x in RGB_SEVCOLS)...]
+const TABLE_FMT= TypstTableFormat(borders=NO_BORDERS, vertical_lines_at_data_columns= :none)
 
-const TYP_TABLE_STYLE = TypstTableStyle( column_label=COL_FILLS )
+const TABLE_STYLE = TypstTableStyle( column_label=["text-fill"=>"black"] )
     # io = IOBuffer()
-
 
 function f_tablebody( h, data, r, c )::Vector{Pair{String,String}}
     d = Pair{String,String}[]
     datacol = c - 2
-    bgcolour = if c <= 2
+    datarow = r - 2
+    bgcolour = if c <= 2 || r <= 2
         BG_WHITE
-    elseif datacol == 6 || r == 6 || datacol == r
+    elseif (datacol == 6) || (datarow == 6) || (datacol == datarow)
         BG_NEUTRAL
-    elseif r > datacol
+    elseif datarow > datacol
         BG_WORSEN
-    elseif c > r
+    elseif datacol > datarow
         BG_IMPROVE
     end
+    @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
     push!(d, "fill" => bgcolour)
     # if r == 0 # size( sf )[1]
-    if r == 6 && datacol > 0
+    if datarow in [0,6] && datacol > 0 # bottom col totals and top 2nd labels from col colour
         push!(d, "text-fill" => RGB_SEVCOLS[datacol])
-    else
-        push!(d, "text-fill" => RGB_SEVCOLS[r])
+    elseif datarow > 0
+        push!(d, "text-fill" => RGB_SEVCOLS[datarow])
     end
     # end
 
-    if(c in [1,2,8]) || (r in [6])
+    if(c in [1,2,8]) || (r in [1,2,8]) # bold row & col headers
         push!(d, "text-weight" => "bold")
     end
     # push!(d, "stretch"=>"75%")
@@ -113,39 +196,34 @@ end
 
 const BODY_HL = TypstHighlighter( (data, r, c)->true,  f_tablebody ) #
 
-    """
-    format cols at end green for good, red for bad.
-    """
-
-# for prettytables
-function fm(v, r, c)
-    return if c in [1,2]
-        v
-    elseif v == 0
-        "-"
-    else
-        Format.format(v, precision=0, commas=true)
-    end
-end
-
-function pt()
+function pt(df :: DataFrame )
     io = IOBuffer()
     pretty_table(io,
-                test_df;
+                df;
                 backend=:typst,
                 merge_column_label_cells = :auto,
-                column_labels=COL_LABELS,
-                table_format=TYP_TABLE_FMT,
+                column_labels=fill("",8), # turn off labels
+                table_format=TABLE_FMT,
                 highlighters = [BODY_HL],
-                style=TYP_TABLE_STYLE,
+                style=TABLE_STYLE,
                 formatters=[fm] )
     return String(take!(io))
 end
 
+end # Typst module
+
+using .TransTables
+
 function save_and_print( filename = "table1")
+    df = TransTables.makedf()
     io = open( "tmp/$(filename).typ", "w")
-    println( io, pt())
+    println( io, TypstTabs.pt(df))
     close(io)
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
+    io = open( "tmp/$(filename).html", "w")
+    println( io, HTMLTabs.pt(df))
+    close(io)
 end
+
+end # moduke
