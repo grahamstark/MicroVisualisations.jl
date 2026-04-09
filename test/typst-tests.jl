@@ -1,6 +1,6 @@
 module TransTables
 
-using Format,DataFrames,ScottishTaxBenefitModel
+using Format,DataFrames,ScottishTaxBenefitModel,Colors
 
 export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE
 
