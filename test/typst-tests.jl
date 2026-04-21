@@ -1,8 +1,11 @@
 module TransTables
 
-using Format,DataFrames,ScottishTaxBenefitModel,Colors,ArgCheck
+using Format,DataFrames,Colors,ArgCheck
 
-export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE
+using ScottishTaxBenefitModel
+using .STBOutput
+
+export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE
 
 const labels = ["V.Deep (<=30%)",
               "Deep (<=40%)",
@@ -72,23 +75,33 @@ function fm(v, r, c)
 end
 
 
-function makedf()
-    m = rand(1:100_000,6,6)
+function makedf(labels::Vector)::DataFrame
+    n = length( labels )
+    m = rand(1:100_000,n,n)
     d = DataFrame(m,labels)
-    insertcols!(d,1,:l1=>midstring("Before",6))
+    insertcols!(d,1,:l1=>midstring("Before",n))
     insertcols!(d,2,:pre=>labels)
     pushfirst!(d, ["", "", labels...]; promote=true)
-    pushfirst!(d, midstring( "After", 8 ); promote=true)
+    pushfirst!(d, midstring( "After", n+2 ); promote=true)
+end
+
+function reverse_crosstab( df :: DataFrame )
+    nrows,ncols = size(df)
+    @assert nrows == ncols
+    nr1 = nrows - 1 # so we can skip totals row
+    # so reverse each row skipping 1st 2 (labels) and reverse all but cols 1,2,last
+    return reverse(df,3,nr1)[!,[1,2,nr1:-1:3...,nrows]]
 end
 
 
 BG_WHITE = "#ffffff"
+BG_BLACK = "#000000"
 BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
 BG_WORSEN = "#f8d7da" # danger
 BG_IMPROVE = "#d1e7dd" # success
 
 function good_to_bad_pallette( num_grades :: Integer )::Vector
-    r = range( colorant"darkgreen", stop=colorant"darkred", length=num_grades )
+    r = range( colorant"seagreen", stop=colorant"firebrick", length=num_grades )
     pushfirst!(r, colorant"black")
     pushfirst!(r, colorant"black")
     push!(r, colorant"black")
@@ -96,10 +109,10 @@ function good_to_bad_pallette( num_grades :: Integer )::Vector
 end
 
 function bad_to_good_pallette( num_grades :: Integer )::Vector
-    r = range( colorant"darkred", stop=colorant"darkgreen", length=num_grades )
-    pushfirst!(r, colorant"black")
-    pushfirst!(r, colorant"black")
-    push!(r, colorant"black")
+    r = range( colorant"firebrick", stop=colorant"seagreen", length=num_grades )
+    # pushfirst!(r, colorant"black")
+    # pushfirst!(r, colorant"black")
+    # push!(r, colorant"black")
     return r
 end
 
@@ -117,7 +130,7 @@ const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
 """
 My 1st attempt at a closure: see:
 """
-function make_highlighters( df :: DataFrame, sevcols::Vector )::Tuple
+function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
 
     END_DATA_COL = size( df )[1]
 
@@ -130,45 +143,41 @@ function make_highlighters( df :: DataFrame, sevcols::Vector )::Tuple
     - r,c row and column (from 1)
 
     """
-    function f_tablebody( h, data, r, c )::Vector{Pair{String,String}}
-        @argcheck r > 2 && c > 2 # && (isnothing(data)||data <: Number)
+    function f_tablebody( h, data, row, col )::Vector{Pair{String,String}}
         d = Pair{String,String}[]
-        datacol = c - 2
-        datarow = r - 2
-        bgcolour = if (datacol == END_DATA_COL) || (datarow == END_DATA_COL) || (datacol == datarow)
+        bgcolour = if (col <= 2) || (row <= 2 ) # label cols
+            BG_WHITE
+        elseif (col == END_DATA_COL) || (row == END_DATA_COL) || (col == row) # diags and rows
             BG_NEUTRAL
-        elseif datarow > datacol
+        elseif row > col
             BG_WORSEN
-        elseif datacol > datarow
+        elseif col > row
             BG_IMPROVE
         end
         @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
         push!(d, "background" => bgcolour)
-        # if r == 0 # size( sf )[1]
-        if datarow in [0,END_DATA_COL] && datacol > 0 # bottom col totals and top 2nd labels from col colour
-            push!(d, "color" => sevcols[datacol])
-        elseif datarow > 0
-            push!(d, "color" => sevcols[datarow])
+        datacol = col - 2
+        datarow = row - 2
+        colour = if(row == END_DATA_COL) && (col == END_DATA_COL) # overal total LHS
+            BG_BLACK
+        elseif(row == 2 && col == END_DATA_COL) || (col == 2 && row == END_DATA_COL) # totals cells in black
+            BG_BLACK
+        elseif(row == 1) || (col==1)
+            BG_BLACK
+        elseif row in [2,END_DATA_COL] # bottom col totals and top 2nd labels from col colour
+            sevcols[col]
+        else
+            sevcols[row]
         end
-        # end
-
-        if(c in [1,2,END_DATA_COL]) || (r in [1,2,8]) # bold row & col headers
+        push!(d, "color" => colour )
+        if(col == 1) || (row == 1)
+            push!(d, "font-style"=> "italic")
+        elseif (col in [2,END_DATA_COL]) || (row in [2,END_DATA_COL]) # bold row & col headers
             push!(d, "font-weight" => "bold")
         end
-        # push!(d, "stretch"=>"75%")
         return d
     end
-
-
-    function f_labels( h, data, r, c )::Vector{Pair{String,String}}
-        @argcheck r <= 2 || c <= 2 # && (data <: AbstractString)
-        d = Pair{String,String}[]
-        push!(d, "font-weight" => "bold")
-        push!(d, "bakgrpund" => BG_WHITE )
-        return d
-    end
-
-    return f_labels, f_tablebody
+    return f_tablebody
 end
 
 """
@@ -204,11 +213,9 @@ return html formatted crosstab as html
 function pt(df :: DataFrame, sevcols :: Vector )
 
     END_DATA_COL = size( df )[1]
-
-    HLS = make_highlighters(df,sevcols)
-    LABEL_HL = HtmlHighlighter( (data, r, c)->(r<=2)||(c<=2),  HLS[1] )
-    BODY_HL = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2),  HLS[2] ) #
-    # won't work
+    # the highlighter is a closuer, so we can have sevcols and the size of dataframe
+    BODY_HL = HtmlHighlighter( (data, r, c)-> true, make_highlighter(df,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
+    # won't work because only the 1st matched highlighter is applied - I've submitted a patcj
     SC = get_sev_col_f( sevcols )
     label_hl = HtmlHighlighter( (data, r, c)->(r<=2)&&(c<=2), ["background" => BG_WHITE,  "font-weight" => "bold"] )
     below_diag = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r>c), "background" => BG_WORSEN )
@@ -216,7 +223,6 @@ function pt(df :: DataFrame, sevcols :: Vector )
     diags = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r==c),  "background" => BG_NEUTRAL )
     sum_row_cols = HtmlHighlighter( (data, r, c)->((r>2)&&(c>2))&&((r==END_DATA_COL)||(c==END_DATA_COL)), ["background" => BG_NEUTRAL, "font-weight"=>"bold"] )
     sev_cols = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2),  SC )
-
     io = IOBuffer()
     pretty_table(io,
                 df;
@@ -224,9 +230,9 @@ function pt(df :: DataFrame, sevcols :: Vector )
                 stand_alone = false,
                 table_class = "table table-sm", # FIXME this is Bootstrap-specific
                 # merge_column_label_cells = :auto,
-                column_labels = fill("",8), # turn off labels
+                column_labels = fill( "", END_DATA_COL ), # turn off labels
                 table_format = HTML_TABLE_FMT,
-                highlighters = [LABEL_HL, BODY_HL],
+                highlighters = [BODY_HL],
                 # highlighters = [ sev_cols, label_hl, diags, below_diag, above_diag, sum_row_cols ],
                 # style=TYP_TABLE_STYLE,
                 formatters=[fm] )
@@ -258,6 +264,7 @@ end
 const RGB_SEVCOLS = rgbstr.(sevcols)
 
 BG_WHITE = rgbstr( TransTables.BG_WHITE )
+BG_BLACK = rgbstr( TransTables.BG_BLACK )
 BG_NEUTRAL = rgbstr( TransTables.BG_NEUTRAL )
 BG_WORSEN = rgbstr( TransTables.BG_WORSEN )
 BG_IMPROVE = rgbstr( TransTables.BG_IMPROVE )
@@ -273,49 +280,82 @@ const NO_BORDERS = TypstTableBorders(
         right_line = "0pt" )
 
 const TABLE_FMT= TypstTableFormat(borders=NO_BORDERS, vertical_lines_at_data_columns= :none)
-
-const TABLE_STYLE = TypstTableStyle( column_label=["text-fill"=>"black"] )
     # io = IOBuffer()
 
-function f_tablebody( h, data, r, c )::Vector{Pair{String,String}}
-    d = Pair{String,String}[]
-    datacol = c - 2
-    datarow = r - 2
-    bgcolour = if c <= 2 || r <= 2
-        BG_WHITE
-    elseif (datacol == 6) || (datarow == 6) || (datacol == datarow)
-        BG_NEUTRAL
-    elseif datarow > datacol
-        BG_WORSEN
-    elseif datacol > datarow
-        BG_IMPROVE
-    end
-    @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
-    push!(d, "fill" => bgcolour)
-    # if r == 0 # size( sf )[1]
-    if datarow in [0,6] && datacol > 0 # bottom col totals and top 2nd labels from col colour
-        push!(d, "text-fill" => RGB_SEVCOLS[datacol])
-    elseif datarow > 0
-        push!(d, "text-fill" => RGB_SEVCOLS[datarow])
-    end
-    # end
+"""
+My 1st attempt at a closure: see:
+"""
+function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
 
-    if(c in [1,2,8]) || (r in [1,2,8]) # bold row & col headers
-        push!(d, "text-weight" => "bold")
+    END_DATA_COL = size( df )[1]
+
+    """
+    Single cell format for html
+
+    - h - a highlighter - don't know! see pretty-tables docs ??
+    - data - the whole dataset
+    - row, col row and column (from 1)
+
+    """
+    function f_tablebody( h, data, row, col )::Vector{Pair{String,String}}
+        d = Pair{String,String}[]
+        bgcolour = if (col <= 2) || (row <= 2 ) # label cols
+            BG_WHITE
+        elseif (col == END_DATA_COL) || (row == END_DATA_COL) || (col == row) # diags and rows
+            BG_NEUTRAL
+        elseif row > col
+            BG_WORSEN
+        elseif col > row
+            BG_IMPROVE
+        end
+        @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
+        push!(d, "fill" => bgcolour)
+        datacol = col - 2
+        datarow = row - 2
+        colour = if(row == END_DATA_COL) && (col == END_DATA_COL) # overal total LHS
+            BG_BLACK
+        elseif(row == 2 && col == END_DATA_COL) || (col == 2 && row == END_DATA_COL) # totals cells in black
+            BG_BLACK
+        elseif(row == 1) || (col==1) # before/after
+            BG_BLACK
+        elseif row in [2,END_DATA_COL] # bottom col totals and top 2nd labels from col colour
+            sevcols[col]
+        else
+            sevcols[row]
+        end
+        push!(d, "text-fill" => colour )
+        if(col == 1) || (row == 1)
+            push!(d, "text-style"=> "italic")
+        elseif (col in [END_DATA_COL]) || (row in [END_DATA_COL]) # bold row & col headers
+            push!(d, "text-weight" => "bold")
+        end
+        return d
     end
-    # push!(d, "stretch"=>"75%")
-    return d
+    return f_tablebody
 end
 
-const BODY_HL = TypstHighlighter( (data, r, c)->true,  f_tablebody ) #
-
-function pt(df :: DataFrame )
+function pt(df :: DataFrame, sevcols :: Vector )
+    n = size(df)[1]
+    pts, labwidth = if n < 7
+        "10pt",
+        "20%"
+    elseif n < 12
+        "8pt",
+        "15%"
+    else
+        "6pt",
+        "12%"
+    end
+    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Gill Sans", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+    # "BellCentennial LT Address",
+    BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( df, sevcols ) ) #
     io = IOBuffer()
     pretty_table(io,
                 df;
                 backend=:typst,
                 merge_column_label_cells = :auto,
-                column_labels=fill("",8), # turn off labels
+                column_labels=fill("",n), # turn off labels
+                data_column_widths=[2=>labwidth],
                 table_format=TABLE_FMT,
                 highlighters = [BODY_HL],
                 style=TABLE_STYLE,
@@ -326,19 +366,33 @@ end
 end # Typst module
 
 using .TransTables
+using ScottishTaxBenefitModel
+using .STBOutput
+
 
 function save_and_print( filename = "table1")
-    df = TransTables.makedf()
-    sevcols = TransTables.bad_to_good_pallette( size(df)[1])
-    @show sevcols
+    dfm = TransTables.makedf( METR_TABLE_BREAK_LABELS )
+    dfm = TransTables.reverse_crosstab( dfm )
+    df = TransTables.makedf( POVERTY_LABELS )
     io = open( "tmp/$(filename).typ", "w")
-    println( io, TypstTabs.pt(df))
+    sevcols = TransTables.bad_to_good_pallette( size(df)[1])
+    hsc = TypstTabs.rgb2typ.( sevcols )
+    println( io, TypstTabs.pt(df, hsc ))
+    sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
+    hsc = TypstTabs.rgb2typ.( sevcols )
+    println( io, TypstTabs.pt(dfm, hsc ))
     close(io)
+
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
     io = open( "tmp/$(filename).html", "w")
+    sevcols = TransTables.bad_to_good_pallette( size(df)[1])
     hsc = "#" .* hex.(sevcols)
     println( io, HTMLTabs.pt(df, hsc ))
+    sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
+    hsc = "#" .* hex.(sevcols)
+    println( io, HTMLTabs.pt(dfm, hsc ))
+
     close(io)
 end
 
