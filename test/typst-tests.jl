@@ -85,6 +85,10 @@ function makedf(labels::Vector)::DataFrame
     pushfirst!(d, midstring( "After", n+2 ); promote=true)
 end
 
+"""
+Switch one of our crosstab dataframes from good->bad to bad->good, preserving the totals row/col and the 1st row/col.
+returns a copy, rather than changing in-place.
+"""
 function reverse_crosstab( df :: DataFrame )
     nrows,ncols = size(df)
     @assert nrows == ncols
@@ -93,28 +97,22 @@ function reverse_crosstab( df :: DataFrame )
     return reverse(df,3,nr1)[!,[1,2,nr1:-1:3...,nrows]]
 end
 
-
+# colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
 BG_WHITE = "#ffffff"
 BG_BLACK = "#000000"
 BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
 BG_WORSEN = "#f8d7da" # danger
 BG_IMPROVE = "#d1e7dd" # success
 
-function good_to_bad_pallette( num_grades :: Integer )::Vector
-    r = range( colorant"seagreen", stop=colorant"firebrick", length=num_grades )
-    pushfirst!(r, colorant"black")
-    pushfirst!(r, colorant"black")
-    push!(r, colorant"black")
-    return r
-end
+"""
+Green->Red pallette In Julia Color.jl RGBs
+"""
+good_to_bad_pallette( num_grades :: Integer )::Vector = range( colorant"seagreen", stop=colorant"firebrick", length=num_grades )
 
-function bad_to_good_pallette( num_grades :: Integer )::Vector
-    r = range( colorant"firebrick", stop=colorant"seagreen", length=num_grades )
-    # pushfirst!(r, colorant"black")
-    # pushfirst!(r, colorant"black")
-    # push!(r, colorant"black")
-    return r
-end
+"""
+Red->Green pallette In Julia Color.jl RGBs
+"""
+bad_to_good_pallette( num_grades :: Integer )::Vector = range( colorant"firebrick", stop=colorant"seagreen", length=num_grades )
 
 module HTMLTabs
 
