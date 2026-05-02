@@ -125,26 +125,27 @@ using ArgCheck
 const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
 
 """
-My 1st attempt at a closure: see:
+Create an html cell highlighter function for prettyTables.
+
+My 1st attempt at a closure.
+- numcols
+- sevcols - css colour strings for the data columns
 """
-function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
-
-    END_DATA_COL = size( df )[1]
-
+function make_highlighter( numcols :: Integer, sevcols::Vector )::Function
 
     """
     Single cell format for html
 
     - h - a highlighter - don't know! see pretty-tables docs ??
     - data - the whole dataset
-    - r,c row and column (from 1)
+    - row,col row and column (from 1)
 
     """
     function f_tablebody( h, data, row, col )::Vector{Pair{String,String}}
         d = Pair{String,String}[]
         bgcolour = if (col <= 2) || (row <= 2 ) # label cols
             BG_WHITE
-        elseif (col == END_DATA_COL) || (row == END_DATA_COL) || (col == row) # diags and rows
+        elseif (col == numcols) || (row == numcols) || (col == row) # diags and rows
             BG_NEUTRAL
         elseif row > col
             BG_WORSEN
@@ -155,13 +156,13 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
         push!(d, "background" => bgcolour)
         datacol = col - 2
         datarow = row - 2
-        colour = if(row == END_DATA_COL) && (col == END_DATA_COL) # overal total LHS
+        colour = if(row == numcols) && (col == numcols) # overal total LHS
             BG_BLACK
-        elseif(row == 2 && col == END_DATA_COL) || (col == 2 && row == END_DATA_COL) # totals cells in black
+        elseif(row == 2 && col == numcols) || (col == 2 && row == numcols) # totals cells in black
             BG_BLACK
         elseif(row == 1) || (col==1)
             BG_BLACK
-        elseif row in [2,END_DATA_COL] # bottom col totals and top 2nd labels from col colour
+        elseif row in [2,numcols] # bottom col totals and top 2nd labels from col colour
             sevcols[col]
         else
             sevcols[row]
@@ -169,7 +170,7 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
         push!(d, "color" => colour )
         if(col == 1) || (row == 1)
             push!(d, "font-style"=> "italic")
-        elseif (col in [2,END_DATA_COL]) || (row in [2,END_DATA_COL]) # bold row & col headers
+        elseif (col in [2,numcols]) || (row in [2,numcols]) # bold row & col headers
             push!(d, "font-weight" => "bold")
         end
         return d
@@ -177,6 +178,7 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
     return f_tablebody
 end
 
+#= failed attempt at succesively applying styles - only 1st is used so abandoned
 """
 closure is the only way I can see to do this...
 """
@@ -195,12 +197,20 @@ function get_sev_col_f( sevcols :: Vector )
     return get_sev_col
 end
 
-function dofall( h, data, r, c )
-    println( "dofall called")
-    @show h
-    return ["color"=>"pink"]
-end
+# won't work because only the 1st matched highlighter is applied - I've submitted a patcj
+SC = get_sev_col_f( sevcols )
+label_hl = HtmlHighlighter( (data, r, c)->(r<=2)&&(c<=2), ["background" => BG_WHITE,  "font-weight" => "bold"] )
+below_diag = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r>c), "background" => BG_WORSEN )
+above_diag = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r<c), "background" => BG_IMPROVE )
+diags = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r==c),  "background" => BG_NEUTRAL )
+sum_row_cols = HtmlHighlighter( (data, r, c)->((r>2)&&(c>2))&&((r==numcols)||(c==numcols)), ["background" => BG_NEUTRAL, "font-weight"=>"bold"] )
+sev_cols = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2),  SC )
 
+...
+
+highlighters = [ sev_cols, label_hl, diags, below_diag, above_diag, sum_row_cols ],
+
+=#
 
 """
 - df nxn crosstab with 2 label rows and cols inserted at the top & front.
@@ -209,17 +219,9 @@ return html formatted crosstab as html
 """
 function pt(df :: DataFrame, sevcols :: Vector )
 
-    END_DATA_COL = size( df )[1]
+    numcols = size( df )[1]
     # the highlighter is a closuer, so we can have sevcols and the size of dataframe
-    BODY_HL = HtmlHighlighter( (data, r, c)-> true, make_highlighter(df,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
-    # won't work because only the 1st matched highlighter is applied - I've submitted a patcj
-    SC = get_sev_col_f( sevcols )
-    label_hl = HtmlHighlighter( (data, r, c)->(r<=2)&&(c<=2), ["background" => BG_WHITE,  "font-weight" => "bold"] )
-    below_diag = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r>c), "background" => BG_WORSEN )
-    above_diag = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r<c), "background" => BG_IMPROVE )
-    diags = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2)&&(r==c),  "background" => BG_NEUTRAL )
-    sum_row_cols = HtmlHighlighter( (data, r, c)->((r>2)&&(c>2))&&((r==END_DATA_COL)||(c==END_DATA_COL)), ["background" => BG_NEUTRAL, "font-weight"=>"bold"] )
-    sev_cols = HtmlHighlighter( (data, r, c)->(r>2)&&(c>2),  SC )
+    BODY_HL = HtmlHighlighter( (data, r, c)-> true, make_highlighter(numcols,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
     io = IOBuffer()
     pretty_table(io,
                 df;
@@ -227,10 +229,9 @@ function pt(df :: DataFrame, sevcols :: Vector )
                 stand_alone = false,
                 table_class = "table table-sm", # FIXME this is Bootstrap-specific
                 # merge_column_label_cells = :auto,
-                column_labels = fill( "", END_DATA_COL ), # turn off labels
+                column_labels = fill( "", numcols ), # turn off labels
                 table_format = HTML_TABLE_FMT,
                 highlighters = [BODY_HL],
-                # highlighters = [ sev_cols, label_hl, diags, below_diag, above_diag, sum_row_cols ],
                 # style=TYP_TABLE_STYLE,
                 formatters=[fm] )
     return String(take!(io))
@@ -282,9 +283,7 @@ const TABLE_FMT= TypstTableFormat(borders=NO_BORDERS, vertical_lines_at_data_col
 """
 My 1st attempt at a closure: see:
 """
-function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
-
-    END_DATA_COL = size( df )[1]
+function make_highlighter( numcols::Integer, sevcols::Vector )::Function
 
     """
     Single cell format for html
@@ -298,7 +297,7 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
         d = Pair{String,String}[]
         bgcolour = if (col <= 2) || (row <= 2 ) # label cols
             BG_WHITE
-        elseif (col == END_DATA_COL) || (row == END_DATA_COL) || (col == row) # diags and rows
+        elseif (col == numcols) || (row == numcols) || (col == row) # diags and rows
             BG_NEUTRAL
         elseif row > col
             BG_WORSEN
@@ -309,13 +308,13 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
         push!(d, "fill" => bgcolour)
         datacol = col - 2
         datarow = row - 2
-        colour = if(row == END_DATA_COL) && (col == END_DATA_COL) # overal total LHS
+        colour = if(row == numcols) && (col == numcols) # overal total LHS
             BG_BLACK
-        elseif(row == 2 && col == END_DATA_COL) || (col == 2 && row == END_DATA_COL) # totals cells in black
+        elseif(row == 2 && col == numcols) || (col == 2 && row == numcols) # totals cells in black
             BG_BLACK
         elseif(row == 1) || (col==1) # before/after
             BG_BLACK
-        elseif row in [2,END_DATA_COL] # bottom col totals and top 2nd labels from col colour
+        elseif row in [2,numcols] # bottom col totals and top 2nd labels from col colour
             sevcols[col]
         else
             sevcols[row]
@@ -323,7 +322,7 @@ function make_highlighter( df :: DataFrame, sevcols::Vector )::Function
         push!(d, "text-fill" => colour )
         if(col == 1) || (row == 1)
             push!(d, "text-style"=> "italic")
-        elseif (col in [END_DATA_COL]) || (row in [END_DATA_COL]) # bold row & col headers
+        elseif (col in [numcols]) || (row in [numcols]) # bold row & col headers
             push!(d, "text-weight" => "bold")
         end
         return d
@@ -345,7 +344,7 @@ function pt(df :: DataFrame, sevcols :: Vector )
     end
     TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Gill Sans", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
     # "BellCentennial LT Address",
-    BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( df, sevcols ) ) #
+    BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( n, sevcols ) ) #
     io = IOBuffer()
     pretty_table(io,
                 df;
