@@ -122,7 +122,6 @@ using DataFrames
 using Format
 using ArgCheck
 
-
 const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
 
 """

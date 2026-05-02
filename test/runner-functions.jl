@@ -1,4 +1,22 @@
 
+
+using ScottishTaxBenefitModel
+using .FRSHouseholdGetter
+using .RunSettings
+using .STBOutput
+
+function makesummaries()
+    settings =  Settings()
+    settings.num_households, settings.num_people, nhh2 =
+       FRSHouseholdGetter.initialise( settings; reset=false )
+    sf = STBOutput.summarise_frames!( SAMPLE_OUTPUT,settings)
+    return sf
+end
+const SAMPLE_OUTPUT = STBOutput.restore_frames( joinpath( pwd(), "sample_output"), 2 )
+const SAMPLE_SUMMARIES = makesummaries()
+
+# avch       pct_change  total_transfer
+
 function do_dummy_run()
 
     function make_some_changes!( sys )
@@ -57,5 +75,3 @@ function getbc(
     bc2.char_labels = BCCalcs.get_char_labels(size(bc2)[1])
     (bc1,bc2)
 end
-
-
