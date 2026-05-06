@@ -5,7 +5,7 @@ using Format,DataFrames,Colors,ArgCheck
 using ScottishTaxBenefitModel
 using .STBOutput
 
-export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE
+export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE, fmt_gl, make_labels, rename_cols
 
 const labels = ["V.Deep (<=30%)",
               "Deep (<=40%)",
@@ -24,6 +24,22 @@ function midstring(s,len)
     @assert length(r) == len "length(r) $(length(r)) != len=$len "
     return r
 end
+
+const GL_RENAMES = Dict([
+    "population"=>"Population, 000s",
+    "avch" => "Avg. Change £pw",
+    "pct_change"=> "% Change",
+    "total_transfer" => "Total Transfer £m p.a"] )
+
+function rename_cols( colnames )
+    n = length( colnames )
+    newnames = fill("",n)
+    for c in 2:n
+        newnames[c] = get( GL_RENAMES, colnames[c], colnames[c])
+    end
+    return newnames
+end
+
 
 """
 Make the row, col labels we actually need for a crosstab from a set of labels, e.g:
@@ -359,12 +375,103 @@ function pt(df :: DataFrame, sevcols :: Vector )
     return String(take!(io))
 end
 
+
+function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_prec=0 )
+
+    nrows, ncols = size( sf )
+
+
+    function fm_gl(v, r, c)
+        return if c == 1
+            v
+        elseif v == 0
+            "-"
+        elseif (c <= ncols - 3) || (c == ncols)
+            Format.format(v, precision=cell_prec, commas=true)
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+
+    function typst_gainlose( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = if c == 1
+            "blue"
+        elseif c >= ncols - 2
+            if data[r,c] < -0.1
+                "maroon"
+            elseif data[r,c] > 0.1
+                "olive"
+            else
+                "black"
+            end
+        else
+            "black"
+        end
+        push!(d, "text-fill" => colour)
+        if r == nrows
+            push!(d, "fill" => "silver")
+        end
+        if(c == 1) || (r== nrows)
+            push!(d, "text-weight" => "bold")
+        end
+        return d
+    end
+
+    """
+    format cols at end green for good, red for bad.
+    """
+    hgainlosecols = TypstHighlighter( (data, r, c)->true,  typst_gainlose )
+
+    function pretty(s)
+        s
+    end
+
+    pts, labwidth = if ncols < 7
+        "10pt",
+        "20%"
+    elseif ncols < 12
+        "8pt",
+        "15%"
+    else
+        "6pt",
+        "12%"
+    end
+
+    sf[!,1] = pretty.(sf[!,1]) # labels on RHS
+    tb = TypstTableBorders(
+        top_line="0pt",
+        header_line = "0pt",
+        merged_header_cell_line = "0pt",
+        middle_line = "0pt",
+        bottom_line = "0pt",
+        left_line = "0pt",
+        center_line = "0pt",
+        right_line = "0pt" )
+    t = TypstTableFormat(borders=tb, vertical_lines_at_data_columns= :none)
+    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Gill Sans", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+    # io = IOBuffer()
+
+    pretty_table(
+        io,
+        sf[!,1:end];
+        backend = backend,
+        formatters=[fm_gl],
+        highlighters = [hgainlosecols],
+        column_labels=rename_cols( names(sf)),
+        alignment=[:l,fill(:r,ncols-1)...],
+        table_format=t,
+        style=TABLE_STYLE,
+        title = title )
+end
+
 end # Typst module
 
 using .TransTables
 using ScottishTaxBenefitModel
 using .STBOutput
-
 
 function save_and_print( filename = "table1")
     dfm = TransTables.makedf( METR_TABLE_BREAK_LABELS )
@@ -391,7 +498,6 @@ function save_and_print( filename = "table1")
 
     close(io)
 end
-
 
 
 end # moduke
