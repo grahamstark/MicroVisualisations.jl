@@ -3,9 +3,14 @@ module TransTables
 using Format,DataFrames,Colors,ArgCheck
 
 using ScottishTaxBenefitModel
-using .STBOutput
+using .STBOutput, .Utils
 
 export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE, fmt_gl, make_labels, rename_cols
+
+struct HTML end
+struct TYPST end
+
+const FONT = "BellCentennial LT Address"
 
 const labels = ["V.Deep (<=30%)",
               "Deep (<=40%)",
@@ -101,16 +106,27 @@ function makedf(labels::Vector)::DataFrame
     pushfirst!(d, midstring( "After", n+2 ); promote=true)
 end
 
+function fixup_transitions_matrix( indf :: DataFrame )::DataFrame
+    df = copy( indf )
+    nrows, ncols = size( df )
+    labels = names(df)
+    insertcols!(df,1,:l1=>midstring("Before",nrows))
+    pushfirst!(df, ["", "", labels[2:end]...]; promote=true)
+    pushfirst!(df, midstring( "After", nrows+2 ); promote=true)
+    return df
+end
+
+
 """
 Switch one of our crosstab dataframes from good->bad to bad->good, preserving the totals row/col and the 1st row/col.
 returns a copy, rather than changing in-place.
 """
 function reverse_crosstab( df :: DataFrame )
     nrows,ncols = size(df)
-    @assert nrows == ncols
-    nr1 = nrows - 1 # so we can skip totals row
+    @assert nrows == ncols-1
+    #nr1 = nrows - 1 # so we can skip totals row
     # so reverse each row skipping 1st 2 (labels) and reverse all but cols 1,2,last
-    return reverse(df,3,nr1)[!,[1,2,nr1:-1:3...,nrows]]
+    return reverse(df,1,nrows-1)[!,[1,ncols-1:-1:2...,ncols]]
 end
 
 # colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
@@ -265,7 +281,8 @@ using Format
 using Colors
 using Typstry
 using ArgCheck
-
+using ScottishTaxBenefitModel
+using .STBOutput, .Utils
 """
 a Color RGB rec to typst colo[u]r string "rgb( 10%, 22%, 99% )"
 """
@@ -282,6 +299,11 @@ BG_BLACK = rgbstr( TransTables.BG_BLACK )
 BG_NEUTRAL = rgbstr( TransTables.BG_NEUTRAL )
 BG_WORSEN = rgbstr( TransTables.BG_WORSEN )
 BG_IMPROVE = rgbstr( TransTables.BG_IMPROVE )
+
+
+function std_table_style( pts )
+    return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+end
 
 const NO_BORDERS = TypstTableBorders(
         top_line="0pt",
@@ -336,10 +358,13 @@ function make_highlighter( numcols::Integer, sevcols::Vector )::Function
             sevcols[row]
         end
         push!(d, "text-fill" => colour )
+        # before and after ..
         if(col == 1) || (row == 1)
             push!(d, "text-style"=> "italic")
-        elseif (col in [numcols]) || (row in [numcols]) # bold row & col headers
-            push!(d, "text-weight" => "bold")
+            # bold row & col totals
+        elseif (col in [numcols]) || (row in [numcols])
+            #push!(d, "text-weight" => "bold")
+            # push!(d, "text-size" => "90%")
         end
         return d
     end
@@ -349,18 +374,22 @@ end
 function pt(df :: DataFrame, sevcols :: Vector )
     n = size(df)[1]
     pts, labwidth = if n < 7
-        "10pt",
+        "9pt",
         "20%"
     elseif n < 12
-        "8pt",
+        "7pt",
         "15%"
     else
-        "6pt",
+        "5pt",
         "12%"
     end
-    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Gill Sans", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+
+    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+
     # "BellCentennial LT Address",
+
     BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( n, sevcols ) ) #
+
     io = IOBuffer()
     pretty_table(io,
                 df;
@@ -370,10 +399,22 @@ function pt(df :: DataFrame, sevcols :: Vector )
                 data_column_widths=[2=>labwidth],
                 table_format=TABLE_FMT,
                 highlighters = [BODY_HL],
-                style=TABLE_STYLE,
+                style=std_table_style( pts ),
                 formatters=[fm] )
     return String(take!(io))
 end
+
+const STD_BORDERS = TypstTableBorders(
+    top_line="0pt",
+    header_line = "0pt",
+    merged_header_cell_line = "0pt",
+    middle_line = "0pt",
+    bottom_line = "0pt",
+    left_line = "0pt",
+    center_line = "0pt",
+    right_line = "0pt" )
+
+const STD_FORMAT = TypstTableFormat(borders=STD_BORDERS, vertical_lines_at_data_columns= :none)
 
 
 function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_prec=0 )
@@ -425,45 +466,32 @@ function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_pre
     """
     hgainlosecols = TypstHighlighter( (data, r, c)->true,  typst_gainlose )
 
-    function pretty(s)
-        s
-    end
-
     pts, labwidth = if ncols < 7
-        "10pt",
+        "9pt",
         "20%"
     elseif ncols < 12
-        "8pt",
+        "7pt",
         "15%"
     else
-        "6pt",
+        "5pt",
         "12%"
     end
 
-    sf[!,1] = pretty.(sf[!,1]) # labels on RHS
-    tb = TypstTableBorders(
-        top_line="0pt",
-        header_line = "0pt",
-        merged_header_cell_line = "0pt",
-        middle_line = "0pt",
-        bottom_line = "0pt",
-        left_line = "0pt",
-        center_line = "0pt",
-        right_line = "0pt" )
-    t = TypstTableFormat(borders=tb, vertical_lines_at_data_columns= :none)
-    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"Gill Sans", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+    sf[!,1] = Utils.pretty.(sf[!,1]) # labels on RHS
+
     # io = IOBuffer()
 
     pretty_table(
         io,
         sf[!,1:end];
-        backend = backend,
+        backend = :typst,
         formatters=[fm_gl],
+        data_column_widths = [1=>"25%"],
         highlighters = [hgainlosecols],
         column_labels=rename_cols( names(sf)),
         alignment=[:l,fill(:r,ncols-1)...],
-        table_format=t,
-        style=TABLE_STYLE,
+        table_format=STD_FORMAT,
+        style=std_table_style( pts ),
         title = title )
 end
 
@@ -472,32 +500,33 @@ end # Typst module
 using .TransTables
 using ScottishTaxBenefitModel
 using .STBOutput
+using CSV,DataFrames
 
-function save_and_print( filename = "table1")
-    dfm = TransTables.makedf( METR_TABLE_BREAK_LABELS )
-    dfm = TransTables.reverse_crosstab( dfm )
-    df = TransTables.makedf( POVERTY_LABELS )
-    io = open( "tmp/$(filename).typ", "w")
-    sevcols = TransTables.bad_to_good_pallette( size(df)[1])
-    hsc = TypstTabs.rgb2typ.( sevcols )
-    println( io, TypstTabs.pt(df, hsc ))
-    sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
-    hsc = TypstTabs.rgb2typ.( sevcols )
-    println( io, TypstTabs.pt(dfm, hsc ))
-    close(io)
-
+function save_and_print_trans( filename = "table1" )
+    dfm = CSV.File( "sample_output/metrs-transition-matrix-df-2.csv")|>DataFrame
+    dfm = TransTables.reverse_crosstab( dfm ) # bad -> good for MRs
+    dfm = fixup_transitions_matrix( dfm )
+    df = CSV.File( "sample_output/poverty-transition-matrix-2-vs-1.csv")|>DataFrame
+    df = fixup_transitions_matrix( df )
+    open( "tmp/$(filename).typ", "w") do io
+        sevcols = TransTables.bad_to_good_pallette( size(df)[1])
+        hsc = TypstTabs.rgb2typ.( sevcols )
+        println( io, TypstTabs.pt(df, hsc ))
+        sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
+        hsc = TypstTabs.rgb2typ.( sevcols )
+        println( io, TypstTabs.pt( dfm, hsc ))
+    end
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
-    io = open( "tmp/$(filename).html", "w")
-    sevcols = TransTables.bad_to_good_pallette( size(df)[1])
-    hsc = "#" .* hex.(sevcols)
-    println( io, HTMLTabs.pt(df, hsc ))
-    sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
-    hsc = "#" .* hex.(sevcols)
-    println( io, HTMLTabs.pt(dfm, hsc ))
 
-    close(io)
+    open( "tmp/$(filename).html", "w") do io
+        sevcols = TransTables.bad_to_good_pallette( size(df)[1])
+        hsc = "#" .* hex.(sevcols)
+        println( io, HTMLTabs.pt(df, hsc ))
+        sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
+        hsc = "#" .* hex.(sevcols)
+        println( io, HTMLTabs.pt( dfm, hsc ))
+    end
 end
-
 
 end # moduke
