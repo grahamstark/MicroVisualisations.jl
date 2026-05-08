@@ -152,16 +152,17 @@ using PrettyTables
 using DataFrames
 using Format
 using ArgCheck
+using MicroVisualisations
 using ScottishTaxBenefitModel, .Utils
 
 
 const HTML_PRE = """
 <!DOCTYPE html>
-<html>
+<html lang='en-GB'>
 <head>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta charset="UTF-8">
-<title>A Budget for Scotland/Microsim API V1 Demo</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <title>A Budget for Scotland/Microsim API V1 Demo</title>
     <link rel="icon" href="images/favicon.ico?v=2.0.0" type="image/x-icon">
     <link rel="stylesheet" href="css/stb-bootstrap.css">
 
@@ -169,31 +170,28 @@ const HTML_PRE = """
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 
-    <script type='text/javascript' src='js/jquery.js'></script>
-    <script type='text/javascript' src='js/jquery.periodicalupdater.js'></script>
-    <script type='text/javascript' src='js/jquery.validate.js'></script>
-    <script type='text/javascript' src='js/jquery.number.js'></script>
+    <script src='js/jquery.js'></script>
+    <script src='js/jquery.periodicalupdater.js'></script>
+    <script src='js/jquery.validate.js'></script>
+    <script src='js/jquery.number.js'></script>
     <!-- bootstrap -->
     <script src="js/bootstrap.bundle.js"></script>
     <!-- vega graphics -->
-    <script type="text/javascript" src="js/vega-lite.min.js"></script>
-    <script type="text/javascript" src="js/vega.js"></script>
-    <script type="text/javascript" src="js/vega-embed.min.js"></script>
+    <script src="js/vega-lite.min.js"></script>
+    <script src="js/vega.js"></script>
+    <script src="js/vega-embed.min.js"></script>
     <!-- templates -->
-    <script type='text/javascript' src="js/mustache.min.js"></script>
+    <script src="js/mustache.min.js"></script>
     <!-- FIXME add colours in bootstrap -->
-    <style type="text/css">
+    <style>
     .bg-purple {background:#cdf;}
     .bg-orange {background:#fec;}
     .hover-highlight:hover {background: #eee}
     </style>
-
-    </head>
-
-    <body class='text-primary p-2'>
+</head>
+<body class='text-primary p-2'>
 
 """
-
 
 const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
 
@@ -391,6 +389,78 @@ function format_gl( title::String, sf :: DataFrame; backend=:html, cell_prec=0 )
             table_format=HTML_TABLE_FMT,
             # style=std_table_style( pts ),
             title = title )
+        return String(take!(io))
+    end
+
+    function frame_to_table(
+        df :: DataFrame;
+        up_is_good :: Union{Vector,Nothing} = nothing,
+        prec = 2,
+        caption = "",
+        totals_col :: Int = 9999999 )
+
+        nrows, ncols = size(df)
+        @assert ncols == 4
+
+        function html_df( h, data, r, c )
+            d = Pair{String,String}[]
+            colour = "black"
+            if ! isnothing( up_is_good )
+                if c == 4 # diff col
+                    if data[r,c] > 0
+                        if up_is_good[r] == 1
+                            colour = "maroon"
+                        elseif up_is_good[r] == -1
+                            colour = "olive"
+                        end
+                    elseif data[r,c] < 0
+                        if up_is_good[r] == -1
+                            colour = "maroon"
+                        elseif up_is_good[r] == 1
+                            colour = "olive"
+                        end
+                    end
+                end
+            end
+            push!(d, "color" => colour)
+            if r >= totals_col
+                push!(d, "background" => BG_NEUTRAL)
+            end
+            if(c == 1) || (r>= totals_col)
+                push!(d, "font-weight" => "bold")
+            end
+            return d
+        end
+
+        function fm_df(v, r, c)
+            s = if c == 1
+                v
+            elseif v ≈ 0
+                "-"
+            else
+                Format.format(v, precision=prec, commas=true)
+            end
+            if(c == 4) && (v>0) # plus xx in totals column
+               s = "+$(s)"
+            end
+            return s
+        end
+
+        hdfcols = HtmlHighlighter((data, r, c)->true,  html_df )
+        io = IOBuffer()
+        pretty_table(
+            io,
+            df;
+            backend = :html,
+            formatters=[fm_df],
+            table_class = "table table-sm", # FIXME this is Bootstrap-specific
+            # data_column_widths = [1=>"30%"],
+            highlighters = [hdfcols],
+            column_labels=["","Before","After","Change"],
+            alignment=[:l,fill(:r,ncols-1)...],
+            table_format=HTML_TABLE_FMT,
+            # style=std_table_style( pts ),
+            source_notes = caption )
         return String(take!(io))
     end
 
@@ -621,12 +691,84 @@ function format_gl( title::String, sf :: DataFrame; backend=:typst, cell_prec=0 
     return String(take!(io))
 end
 
+function frame_to_table(
+    df :: DataFrame;
+    up_is_good :: Union{Vector,Nothing} = nothing,
+    prec = 2,
+    caption = "",
+    totals_col :: Int = 9999999 )
+
+    nrows, ncols = size(df)
+    @assert ncols == 4
+
+    function typst_df( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = "black"
+        if ! isnothing( up_is_good )
+            if c == 4 # diff col
+                if data[r,c] > 0
+                    if up_is_good[r] == 1
+                        colour = "maroon"
+                        elseif up_is_good[r] == -1
+                        colour = "olive"
+                    end
+                    elseif data[r,c] < 0
+                    if up_is_good[r] == -1
+                        colour = "maroon"
+                        elseif up_is_good[r] == 1
+                        colour = "olive"
+                    end
+                end
+            end
+        end
+        push!(d, "text-fill" => colour)
+        if r >= totals_col
+            push!(d, "fill" => BG_NEUTRAL)
+        end
+        if(c == 1) || (r>= totals_col)
+            push!(d, "text-weight" => "bold")
+        end
+        return d
+    end
+
+    function fm_df(v, r, c)
+        s = if c == 1
+            v
+            elseif v ≈ 0
+            "-"
+        else
+            Format.format(v, precision=prec, commas=true)
+        end
+        if(c == 4) && (v>0) # plus xx in totals column
+            s = "+$(s)"
+        end
+        return s
+    end
+
+    hdfcols = TypstHighlighter((data, r, c)->true,  typst_df )
+    io = IOBuffer()
+    pretty_table(
+        io,
+        df;
+        backend = :typst,
+        formatters=[fm_df],
+        data_column_widths = [1=>"30%"],
+        highlighters = [hdfcols],
+        column_labels=["","Before","After","Change"],
+        alignment=[:l,fill(:r,ncols-1)...],
+        table_format=STD_FORMAT,
+        style=std_table_style( "10pt" ),
+        caption = caption )
+    return String(take!(io))
+end
+
 end # Typst module
 
 using .TransTables
 using ScottishTaxBenefitModel
 using .STBOutput
 using CSV,DataFrames
+using MicroVisualisations
 
 function save_and_print_trans( filename = "table1" )
     dfm = CSV.File( "sample_output/metrs-transition-matrix-df-2.csv")|>DataFrame
@@ -635,6 +777,9 @@ function save_and_print_trans( filename = "table1" )
     df = CSV.File( "sample_output/poverty-transition-matrix-2-vs-1.csv")|>DataFrame
     df = fixup_transitions_matrix( df )
     gl = CSV.File( "sample_output/gain-lose-by-tenure-2-vs-1.csv")|>DataFrame
+    incs1 = CSV.File( "sample_output/income_summary_1.csv")|>DataFrame
+    incs2 = CSV.File( "sample_output/income_summary_2.csv")|>DataFrame
+    cf = costs_dataframe( incs1, incs2 )
     open( "tmp/$(filename).typ", "w") do io
         sevcols = TransTables.bad_to_good_pallette( size(df)[1])
         hsc = TypstTabs.rgb2typ.( sevcols )
@@ -643,6 +788,7 @@ function save_and_print_trans( filename = "table1" )
         hsc = TypstTabs.rgb2typ.( sevcols )
         println( io, TypstTabs.format_crosstab( dfm, hsc ))
         println(io, TypstTabs.format_gl( "Gain-Lose by Tenure", gl ))
+        println( io, TypstTabs.frame_to_table( cf; prec=0, up_is_good=MicroVisualisations.COST_UP_GOOD ))
     end
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
@@ -656,6 +802,7 @@ function save_and_print_trans( filename = "table1" )
         hsc = "#" .* hex.(sevcols)
         println( io, HTMLTabs.format_crosstab( dfm, hsc ))
         println( io, HTMLTabs.format_gl( "Gain-Lose by Tenure", gl ))
+        println( io, HTMLTabs.frame_to_table( cf; prec=0, up_is_good=MicroVisualisations.COST_UP_GOOD ))
         println( io, "</body></html>")
     end
 end
