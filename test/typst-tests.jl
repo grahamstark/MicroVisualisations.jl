@@ -6,7 +6,6 @@ using ScottishTaxBenefitModel
 using .STBOutput, .Utils
 
 export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE, fmt_gl, make_labels, rename_cols
-
 struct HTML end
 struct TYPST end
 
@@ -153,6 +152,48 @@ using PrettyTables
 using DataFrames
 using Format
 using ArgCheck
+using ScottishTaxBenefitModel, .Utils
+
+
+const HTML_PRE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset="UTF-8">
+<title>A Budget for Scotland/Microsim API V1 Demo</title>
+    <link rel="icon" href="images/favicon.ico?v=2.0.0" type="image/x-icon">
+    <link rel="stylesheet" href="css/stb-bootstrap.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+
+    <script type='text/javascript' src='js/jquery.js'></script>
+    <script type='text/javascript' src='js/jquery.periodicalupdater.js'></script>
+    <script type='text/javascript' src='js/jquery.validate.js'></script>
+    <script type='text/javascript' src='js/jquery.number.js'></script>
+    <!-- bootstrap -->
+    <script src="js/bootstrap.bundle.js"></script>
+    <!-- vega graphics -->
+    <script type="text/javascript" src="js/vega-lite.min.js"></script>
+    <script type="text/javascript" src="js/vega.js"></script>
+    <script type="text/javascript" src="js/vega-embed.min.js"></script>
+    <!-- templates -->
+    <script type='text/javascript' src="js/mustache.min.js"></script>
+    <!-- FIXME add colours in bootstrap -->
+    <style type="text/css">
+    .bg-purple {background:#cdf;}
+    .bg-orange {background:#fec;}
+    .hover-highlight:hover {background: #eee}
+    </style>
+
+    </head>
+
+    <body class='text-primary p-2'>
+
+"""
+
 
 const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
 
@@ -249,7 +290,7 @@ highlighters = [ sev_cols, label_hl, diags, below_diag, above_diag, sum_row_cols
 - sevcols : colours of the text e.g. red for bad green good, etc.
 return html formatted crosstab as html
 """
-function pt(df :: DataFrame, sevcols :: Vector )
+function format_crosstab(df :: DataFrame, sevcols :: Vector )
 
     numcols = size( df )[1]
     # the highlighter is a closuer, so we can have sevcols and the size of dataframe
@@ -259,7 +300,7 @@ function pt(df :: DataFrame, sevcols :: Vector )
                 df;
                 backend=:html,
                 stand_alone = false,
-                table_class = "table table-sm", # FIXME this is Bootstrap-specific
+                table_class = "table table-sm table-borderless", # FIXME this is Bootstrap-specific
                 # merge_column_label_cells = :auto,
                 column_labels = fill( "", numcols ), # turn off labels
                 table_format = HTML_TABLE_FMT,
@@ -268,6 +309,90 @@ function pt(df :: DataFrame, sevcols :: Vector )
                 formatters=[fm] )
     return String(take!(io))
 end
+
+
+function std_table_style( pts )
+    return HtmlTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
+end
+
+function format_gl( title::String, sf :: DataFrame; backend=:html, cell_prec=0 )::String
+
+    nrows, ncols = size( sf )
+
+    function fm_gl(v, r, c)
+        return if c == 1
+            v
+            elseif v == 0
+            "-"
+            elseif (c <= ncols - 3) || (c == ncols)
+            Format.format(v, precision=cell_prec, commas=true)
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+    function html_gainlose( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = if c == 1
+            "blue"
+            elseif c >= ncols - 2
+            if data[r,c] < -0.1
+                "maroon"
+                elseif data[r,c] > 0.1
+                "olive"
+            else
+                "black"
+            end
+        else
+            "black"
+        end
+        push!(d, "color" => colour)
+        if r == nrows
+            push!(d, "background" => BG_NEUTRAL)
+        elseif c >= ncols - 3
+            push!(d, "background" => "#eee")
+        end
+        if(c == 1) || (r== nrows)
+            push!(d, "font-weight" => "bold")
+        end
+        return d
+    end
+
+    """
+    format cols at end green for good, red for bad.
+        """
+        hgainlosecols = HtmlHighlighter( (data, r, c)->true,  html_gainlose )
+
+        pts, labwidth = if ncols < 7
+            "9pt",
+            "20%"
+            elseif ncols < 12
+            "7pt",
+            "15%"
+        else
+            "5pt",
+            "12%"
+        end
+
+        sf[!,1] = Utils.pretty.(sf[!,1]) # labels on RHS
+
+        io = IOBuffer()
+        pretty_table(
+            io,
+            sf[!,1:end];
+            backend = :html,
+            formatters=[fm_gl],
+            table_class = "table table-sm", # FIXME this is Bootstrap-specific
+            # data_column_widths = [1=>"25%"],
+            highlighters = [hgainlosecols],
+            column_labels=rename_cols( names(sf)),
+            alignment=[:l,fill(:r,ncols-1)...],
+            table_format=HTML_TABLE_FMT,
+            # style=std_table_style( pts ),
+            title = title )
+        return String(take!(io))
+    end
 
 end # module
 
@@ -302,7 +427,7 @@ BG_IMPROVE = rgbstr( TransTables.BG_IMPROVE )
 
 
 function std_table_style( pts )
-    return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+    return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
 end
 
 const NO_BORDERS = TypstTableBorders(
@@ -371,7 +496,7 @@ function make_highlighter( numcols::Integer, sevcols::Vector )::Function
     return f_tablebody
 end
 
-function pt(df :: DataFrame, sevcols :: Vector )
+function format_crosstab(df :: DataFrame, sevcols :: Vector )
     n = size(df)[1]
     pts, labwidth = if n < 7
         "9pt",
@@ -417,10 +542,9 @@ const STD_BORDERS = TypstTableBorders(
 const STD_FORMAT = TypstTableFormat(borders=STD_BORDERS, vertical_lines_at_data_columns= :none)
 
 
-function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_prec=0 )
+function format_gl( title::String, sf :: DataFrame; backend=:typst, cell_prec=0 )::String
 
     nrows, ncols = size( sf )
-
 
     function fm_gl(v, r, c)
         return if c == 1
@@ -434,7 +558,6 @@ function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_pre
         end
         s
     end
-
 
     function typst_gainlose( h, data, r, c )
         d = Pair{String,String}[]
@@ -453,6 +576,8 @@ function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_pre
         end
         push!(d, "text-fill" => colour)
         if r == nrows
+            push!(d, "fill" => "gray")
+        elseif c >= ncols - 3
             push!(d, "fill" => "silver")
         end
         if(c == 1) || (r== nrows)
@@ -480,7 +605,7 @@ function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_pre
     sf[!,1] = Utils.pretty.(sf[!,1]) # labels on RHS
 
     # io = IOBuffer()
-
+    io = IOBuffer()
     pretty_table(
         io,
         sf[!,1:end];
@@ -493,6 +618,7 @@ function format_gl( io, title::String, sf :: DataFrame; backend=:typst, cell_pre
         table_format=STD_FORMAT,
         style=std_table_style( pts ),
         title = title )
+    return String(take!(io))
 end
 
 end # Typst module
@@ -508,24 +634,29 @@ function save_and_print_trans( filename = "table1" )
     dfm = fixup_transitions_matrix( dfm )
     df = CSV.File( "sample_output/poverty-transition-matrix-2-vs-1.csv")|>DataFrame
     df = fixup_transitions_matrix( df )
+    gl = CSV.File( "sample_output/gain-lose-by-tenure-2-vs-1.csv")|>DataFrame
     open( "tmp/$(filename).typ", "w") do io
         sevcols = TransTables.bad_to_good_pallette( size(df)[1])
         hsc = TypstTabs.rgb2typ.( sevcols )
-        println( io, TypstTabs.pt(df, hsc ))
+        println( io, TypstTabs.format_crosstab(df, hsc ))
         sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
         hsc = TypstTabs.rgb2typ.( sevcols )
-        println( io, TypstTabs.pt( dfm, hsc ))
+        println( io, TypstTabs.format_crosstab( dfm, hsc ))
+        println(io, TypstTabs.format_gl( "Gain-Lose by Tenure", gl ))
     end
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
 
     open( "tmp/$(filename).html", "w") do io
+        println(io, HTMLTabs.HTML_PRE)
         sevcols = TransTables.bad_to_good_pallette( size(df)[1])
         hsc = "#" .* hex.(sevcols)
-        println( io, HTMLTabs.pt(df, hsc ))
+        println( io, HTMLTabs.format_crosstab(df, hsc ))
         sevcols = TransTables.bad_to_good_pallette( size(dfm)[1])
         hsc = "#" .* hex.(sevcols)
-        println( io, HTMLTabs.pt( dfm, hsc ))
+        println( io, HTMLTabs.format_crosstab( dfm, hsc ))
+        println( io, HTMLTabs.format_gl( "Gain-Lose by Tenure", gl ))
+        println( io, "</body></html>")
     end
 end
 
