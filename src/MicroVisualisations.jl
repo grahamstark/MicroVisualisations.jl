@@ -16,11 +16,13 @@ using Dates
 using Format
 using CairoMakie
 using Images: load
+using Markdown
 using Observables
 using StatsBase
 using PrettyTables
 using Preferences
-using Markdown
+using Typstry
+
 
 using BudgetConstraints
 using PovertyAndInequalityMeasures
@@ -92,6 +94,10 @@ export
       make_example_card,
       make_popups,
       make_short_summary
+
+include( "tables-common.jl")
+include( "html-tables.jl")
+include( "typst-tables.jl")
 
 include( "examples.jl")
 include( "display_constants.jl")

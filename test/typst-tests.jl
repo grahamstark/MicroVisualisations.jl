@@ -6,8 +6,10 @@ using ScottishTaxBenefitModel
 using .STBOutput, .Utils
 
 export labels,midstring,COL_LABELS,rgbstr,sevcols,fm,makedf, BG_WHITE, BG_BLACK, BG_NEUTRAL, BG_WORSEN, BG_IMPROVE, fmt_gl, make_labels, rename_cols
+
 struct HTML end
 struct TYPST end
+struct MARKDOWN end
 
 const FONT = "BellCentennial LT Address"
 
@@ -193,7 +195,7 @@ const HTML_PRE = """
 
 """
 
-const HTML_TABLE_FMT = HtmlTableFormat(css="border-collapse:collapse")
+const HTML_TABLE_FORMAT = HtmlTableFormat(css="border-collapse:collapse")
 
 """
 Create an html cell highlighter function for prettyTables.
@@ -301,7 +303,7 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector )
                 table_class = "table table-sm table-borderless", # FIXME this is Bootstrap-specific
                 # merge_column_label_cells = :auto,
                 column_labels = fill( "", numcols ), # turn off labels
-                table_format = HTML_TABLE_FMT,
+                table_format = HTML_TABLE_FORMAT,
                 highlighters = [BODY_HL],
                 # style=TYP_TABLE_STYLE,
                 formatters=[fm] )
@@ -386,7 +388,7 @@ function format_gl( title::String, sf :: DataFrame; backend=:html, cell_prec=0 )
             highlighters = [hgainlosecols],
             column_labels=rename_cols( names(sf)),
             alignment=[:l,fill(:r,ncols-1)...],
-            table_format=HTML_TABLE_FMT,
+            table_format=HTML_TABLE_FORMAT,
             # style=std_table_style( pts ),
             title = title )
         return String(take!(io))
@@ -408,16 +410,16 @@ function format_gl( title::String, sf :: DataFrame; backend=:html, cell_prec=0 )
             if ! isnothing( up_is_good )
                 if c == 4 # diff col
                     if data[r,c] > 0
-                        if up_is_good[r] == 1
-                            colour = "maroon"
-                        elseif up_is_good[r] == -1
-                            colour = "olive"
+                        if up_is_good[r] == -1
+                            colour = "darkred"
+                        elseif up_is_good[r] == 1
+                            colour = "darkgreen"
                         end
                     elseif data[r,c] < 0
-                        if up_is_good[r] == -1
-                            colour = "maroon"
-                        elseif up_is_good[r] == 1
-                            colour = "olive"
+                        if up_is_good[r] == 1
+                            colour = "darkred"
+                        elseif up_is_good[r] == -1
+                            colour = "darkgreen"
                         end
                     end
                 end
@@ -458,11 +460,40 @@ function format_gl( title::String, sf :: DataFrame; backend=:html, cell_prec=0 )
             highlighters = [hdfcols],
             column_labels=["","Before","After","Change"],
             alignment=[:l,fill(:r,ncols-1)...],
-            table_format=HTML_TABLE_FMT,
+            table_format=HTML_TABLE_FORMAT,
             # style=std_table_style( pts ),
             source_notes = caption )
         return String(take!(io))
     end
+
+    """
+    Catch all with labels in col1, numbers in the rest
+    """
+    function labelled_frame_to_table( df :: DataFrame; prec=2 )::String
+
+        function fm_df(v, r, c)
+            return if (c == 1) || (! (typeof(v) <: Number ))
+                v
+            else
+                Format.format(v, precision=prec, commas=true)
+            end
+        end
+
+        nrows, ncols = size(df)
+        hl = HtmlHighlighter((data, r, c)->c==1,  ["font-weight"=>"bold"] )
+        io = IOBuffer()
+        pretty_table( io, df,
+                     backend = :html,
+                     formatters=[fm_df],
+                     table_class = "table table-sm",
+                     table_format=HTML_TABLE_FORMAT,
+                     column_labels = ["",pretty.( names(df )[2:end])...],
+                     # style=std_table_style("8pt"),
+                     alignment=[:l,fill(:r,ncols-1)...],
+                     highlighters = [hl] )
+        return String( take!( io ))
+    end
+
 
 end # module
 
@@ -705,17 +736,18 @@ function frame_to_table(
         d = Pair{String,String}[]
         colour = "black"
         if ! isnothing( up_is_good )
+            # typst named colo[u]rs: https://typst.app/docs/reference/visualize/color/
             if c == 4 # diff col
                 if data[r,c] > 0
-                    if up_is_good[r] == 1
-                        colour = "maroon"
-                        elseif up_is_good[r] == -1
-                        colour = "olive"
-                    end
-                    elseif data[r,c] < 0
                     if up_is_good[r] == -1
                         colour = "maroon"
                         elseif up_is_good[r] == 1
+                        colour = "olive"
+                    end
+                elseif data[r,c] < 0
+                    if up_is_good[r] == 1
+                        colour = "maroon"
+                    elseif up_is_good[r] == -1
                         colour = "olive"
                     end
                 end
@@ -762,6 +794,34 @@ function frame_to_table(
     return String(take!(io))
 end
 
+"""
+Catch all with labels in col1, numbers in the rest
+"""
+function labelled_frame_to_table( df :: DataFrame; prec=2 )::String
+
+    function fm_df(v, r, c)
+        return if (c == 1) || (! (typeof(v) <: Number ))
+            v
+        else
+            Format.format(v, precision=prec, commas=true)
+        end
+    end
+
+    nrows, ncols = size(df)
+    hl = TypstHighlighter((data, r, c)->c==1,  ["text-weight"=>"bold"] )
+    io = IOBuffer()
+    pretty_table( io, df,
+        backend = :typst,
+        formatters=[fm_df],
+        table_format=STD_FORMAT,
+        column_labels = ["",pretty.( names(df )[2:end])...],
+        style=std_table_style("8pt"),
+        data_column_widths = [1=>"20%"],
+        alignment=[:l,fill(:r,ncols-1)...],
+        highlighters = [hl] )
+    return String( take!( io ))
+end
+
 end # Typst module
 
 using .TransTables
@@ -789,6 +849,8 @@ function save_and_print_trans( filename = "table1" )
         println( io, TypstTabs.format_crosstab( dfm, hsc ))
         println(io, TypstTabs.format_gl( "Gain-Lose by Tenure", gl ))
         println( io, TypstTabs.frame_to_table( cf; prec=0, up_is_good=MicroVisualisations.COST_UP_GOOD ))
+        println( io, TypstTabs.labelled_frame_to_table( cf ))
+
     end
     typst_command = `typst compile tmp/$(filename).typ`
     run( typst_command )
@@ -803,8 +865,11 @@ function save_and_print_trans( filename = "table1" )
         println( io, HTMLTabs.format_crosstab( dfm, hsc ))
         println( io, HTMLTabs.format_gl( "Gain-Lose by Tenure", gl ))
         println( io, HTMLTabs.frame_to_table( cf; prec=0, up_is_good=MicroVisualisations.COST_UP_GOOD ))
+        println( io, HTMLTabs.labelled_frame_to_table( cf ))
         println( io, "</body></html>")
     end
+
+
 end
 
 end # moduke
