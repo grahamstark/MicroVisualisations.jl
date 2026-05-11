@@ -70,7 +70,9 @@ end # function /functor
 - sevcols : colours of the text e.g. red for bad green good, etc.
 return html formatted crosstab as html
 """
-function format_crosstab(df :: DataFrame, sevcols :: Vector, ::HTML )
+function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_HTML )
+
+
     numcols = size( df )[1]
     # the highlighter is a closuer, so we can have sevcols and the size of dataframe
     body_hl = HtmlHighlighter( (data, r, c)-> true, html_make_highlighter(numcols,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
@@ -82,7 +84,7 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector, ::HTML )
         column_labels = fill( "", numcols ), # turn off labels
         table_format = HTML_TABLE_FORMAT,
         highlighters = [body_hl],
-        formatters=[fm] )
+        formatters=[crosstab_fm] )
     return String(take!(io))
 end
 

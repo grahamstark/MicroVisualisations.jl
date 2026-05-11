@@ -1,0 +1,96 @@
+
+
+const TYPST_NO_BORDERS = TypstTableBorders(
+        top_line="0pt",
+        header_line = "0pt",
+        merged_header_cell_line = "0pt",
+        middle_line = "0pt",
+        bottom_line = "0pt",
+        left_line = "0pt",
+        center_line = "0pt",
+        right_line = "0pt" )
+
+const TYPST_TABLE_FORMAT = TypstTableFormat(borders=TYPST_NO_BORDERS, vertical_lines_at_data_columns= :none)
+
+
+
+function typst_std_table_style( pts )
+    return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
+end
+
+"""
+My 1st attempt at a closure: see:
+"""
+function make_highlighter( numcols::Integer, sevcols::Vector )::Function
+
+    """
+    - h - a highlighter - don't know! see pretty-tables docs ??
+    - data - the whole dataset
+    - row, col row and column (from 1)
+
+    """
+    function f_tablebody( h, data, row, col )::Vector{Pair{String,String}}
+        d = Pair{String,String}[]
+        bgcolour = if (col <= 2) || (row <= 2 ) # label cols
+            rgbstr( BG_WHITE )
+        elseif (col == numcols) || (row == numcols) || (col == row) # diags and rows
+            rgbstr( BG_NEUTRAL )
+        elseif row > col
+            rgbstr( BG_WORSEN )
+        elseif col > row
+            rgbstr( BG_IMPROVE )
+        end
+        @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
+        push!(d, "fill" => bgcolour)
+        datacol = col - 2
+        datarow = row - 2
+        colour = if(row == numcols) && (col == numcols) # overal total LHS
+            rgbstr( BG_BLACK )
+        elseif(row == 1) || (col==1) # before/after
+            rgbstr( BG_BLACK )
+        elseif row in [2,numcols] # bottom col totals and top 2nd labels from col colour
+            sevcols[col]
+        else
+            sevcols[row]
+        end
+        push!(d, "text-fill" => colour )
+        # before and after ..
+        if(col == 1) || (row == 1)
+            push!(d, "text-style"=> "italic")
+            # bold row & col totals
+        elseif (col in [numcols]) || (row in [numcols])
+            #push!(d, "text-weight" => "bold")
+            # push!(d, "text-size" => "90%")
+        end
+        return d
+    end
+    return f_tablebody
+end
+
+
+function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_TYPST )
+    nrows, ncols = size(df)
+    pts, labwidth = if nrows < 7
+        "9pt",
+        "20%"
+    elseif nrows < 12
+        "7pt",
+        "15%"
+    else
+        "5pt",
+        "12%"
+    end
+    TABLE_STYLE = TypstTableStyle( table=["text-font"=>"$(DEFAULT_FONT)", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
+    BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( nrows, sevcols ) ) #
+    io = IOBuffer()
+    pretty_table(io, df;
+        backend=:typst,
+        merge_column_label_cells = :auto,
+        column_labels=fill("",nrows), # turn off labels
+        data_column_widths=[2=>labwidth],
+        table_format=TYPST_TABLE_FORMAT,
+        highlighters = [BODY_HL],
+        style=typst_std_table_style( pts ),
+        formatters=[crosstab_fm] )
+    return String(take!(io))
+end

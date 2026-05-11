@@ -5,9 +5,9 @@ Constants shared between all formats of table we support
 =#
 
 # FIXME these must ne standard defines somewhere?
-struct HTML end
-struct TYPST end
-struct MARKDOWN end
+struct MV_HTML end
+struct MV_TYPST end
+struct MV_MARKDOWN end
 
 const DEFAULT_FONT = "Urbanist"
 
@@ -35,6 +35,19 @@ const MR_UP_GOOD = [
     -1, # "Above 100"
     -1, # mean
     -1] # median
+
+
+
+# for prettytables
+function crosstab_fm(v, r, c)
+    return if c in [1,2] || r in [1,2]
+        v
+    elseif v == 0
+        "-"
+    else
+        Format.format(v, precision=0, commas=true)
+    end
+end
 
 const COST_UP_GOOD = [1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,1]
 
@@ -82,6 +95,11 @@ function rgbstr( hex :: String )::String
     g = topct( hex[4:5])
     b = topct( hex[6:7])
     return "rgb( $(r)%, $(g)%, $(b)%)"
+end
+
+function rgb2typ( r :: RGB )::String
+    fpc(x)=format(x*100,precision=0)*"%"
+    return "rgb( $(fpc(r.r)), $(fpc(r.g)), $(fpc(r.b)) )"
 end
 
 """
