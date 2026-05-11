@@ -11,6 +11,13 @@ struct MARKDOWN end
 
 const DEFAULT_FONT = "Urbanist"
 
+# colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
+BG_WHITE = "#ffffff"
+BG_BLACK = "#000000"
+BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
+BG_WORSEN = "#f8d7da" # danger
+BG_IMPROVE = "#d1e7dd" # success
+
 const MR_UP_GOOD = [
     0, # "Less than zero"
     1, # "Zero"
@@ -77,12 +84,24 @@ function rgbstr( hex :: String )::String
     return "rgb( $(r)%, $(g)%, $(b)%)"
 end
 
+"""
+
+"""
+function fixup_transitions_matrix( indf :: DataFrame )::DataFrame
+    df = copy( indf )
+    nrows, ncols = size( df )
+    labels = names(df)
+    insertcols!(df,1,:l1=>midstring("Before",nrows))
+    pushfirst!(df, ["", "", labels[2:end]...]; promote=true)
+    pushfirst!(df, midstring( "After", nrows+2 ); promote=true)
+    return df
+end
 
 """
 Switch one of our crosstab dataframes from good->bad to bad->good, preserving the totals row/col and the 1st row/col.
 returns a copy, rather than changing in-place.
 """
-function reverse_crosstab( df :: DataFrame )
+function reverse_crosstab( df :: AbstractDataFrame )::DataFrame
     nrows,ncols = size(df)
     @assert nrows == ncols-1
     #nr1 = nrows - 1 # so we can skip totals row
@@ -90,12 +109,6 @@ function reverse_crosstab( df :: DataFrame )
     return reverse(df,1,nrows-1)[!,[1,ncols-1:-1:2...,ncols]]
 end
 
-# colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
-BG_WHITE = "#ffffff"
-BG_BLACK = "#000000"
-BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
-BG_WORSEN = "#f8d7da" # danger
-BG_IMPROVE = "#d1e7dd" # success
 
 """
 Green->Red pallette In Julia Color.jl RGBs

@@ -35,7 +35,7 @@ function html_make_highlighter( numcols :: Integer, sevcols::Vector )::Function
             BG_NEUTRAL
         elseif row > col
             BG_WORSEN
-        elseif col > rowUrbanist
+        elseif col > row
             BG_IMPROVE
         end
         @assert ! isnothing( bgcolour) "bgcolour is nothing for r=$r c=$c"
@@ -73,7 +73,7 @@ return html formatted crosstab as html
 function format_crosstab(df :: DataFrame, sevcols :: Vector, ::HTML )
     numcols = size( df )[1]
     # the highlighter is a closuer, so we can have sevcols and the size of dataframe
-    BODY_HL = HtmlHighlighter( (data, r, c)-> true, html_make_highlighter(numcols,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
+    body_hl = HtmlHighlighter( (data, r, c)-> true, html_make_highlighter(numcols,sevcols)) # (r>2)&&(c>2),  HLS[2] ) #
     io = IOBuffer()
     pretty_table(io, df;
         backend=:html,
@@ -81,7 +81,7 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector, ::HTML )
         table_class = "table table-sm table-borderless", # FIXME this is Bootstrap-specific
         column_labels = fill( "", numcols ), # turn off labels
         table_format = HTML_TABLE_FORMAT,
-        highlighters = [BODY_HL],
+        highlighters = [body_hl],
         formatters=[fm] )
     return String(take!(io))
 end
