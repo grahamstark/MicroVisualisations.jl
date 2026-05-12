@@ -170,3 +170,81 @@ function format_gain_lose( title::String, gl :: DataFrame, ::MV_TYPST; cell_prec
     return String(take!(io))
 end
 
+
+"""
+Our standard costs tables have 4 rows: label, pre values, post values, change.
+up_is_good - vector of 1=good 0=don't care -1=bad
+"""
+function format_std_short_costs(
+    df :: DataFrame, ::MV_TYPST;
+    up_is_good :: Union{Vector,Nothing} = nothing,
+    prec = 2,
+    caption = "",
+    totals_col :: Int = 9999999 )::String
+
+    nrows, ncols = size(df)
+    @assert ncols == 4
+
+    function typst_df( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = "black"
+        if ! isnothing( up_is_good )
+            # typst named colo[u]rs: https://typst.app/docs/reference/visualize/color/
+            if c == 4 # diff col
+                if data[r,c] > 0
+                    if up_is_good[r] == -1
+                        colour = "maroon"
+                    elseif up_is_good[r] == 1
+                        colour = "olive"
+                    end
+                    elseif data[r,c] < 0
+                    if up_is_good[r] == 1
+                        colour = "maroon"
+                    elseif up_is_good[r] == -1
+                        colour = "olive"
+                    end
+                end
+            end
+        end
+        push!(d, "text-fill" => colour)
+        if r >= totals_col
+            push!(d, "fill" => rgbstr( BG_NEUTRAL))
+        end
+        if(c == 1) || (r>= totals_col)
+            push!(d, "text-weight" => "bold")
+        end
+        return d
+    end
+
+    function fm_df(v, r, c)
+        s = if c == 1
+            v
+        elseif v ≈ 0
+            "-"
+        else
+            Format.format(v, precision=prec, commas=true)
+        end
+        if(c == 4) && (v > 0) # plus xx in totals column
+            s = "+$(s)"
+        end
+        return s
+    end
+
+    hdfcols = TypstHighlighter((data, r, c)->true,  typst_df )
+    io = IOBuffer()
+    pretty_table(
+        io,
+        df;
+        backend = :typst,
+        formatters=[fm_df],
+        data_column_widths = [1=>"30%"],
+        highlighters = [hdfcols],
+        column_labels=["","Before","After","Change"],
+        alignment=[:l,fill(:r,ncols-1)...],
+        table_format=   TYPST_TABLE_FORMAT,
+        style=typst_std_table_style( "10pt" ),
+        caption = caption )
+    return String(take!(io))
+end
+
+
