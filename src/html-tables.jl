@@ -88,6 +88,87 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_HTML )
     return String(take!(io))
 end
 
+function format_gain_lose( title::String, gl :: DataFrame, ::MV_HTML; cell_prec=0 )::String
+
+    nrows, ncols = size( gl )
+
+    function fm_gl(v, r, c)
+        return if c == 1
+            v
+        elseif v == 0
+            "-"
+        elseif (c <= ncols - 3) || (c == ncols)
+            Format.format(v, precision=cell_prec, commas=true)
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+    """
+    grey totals & rhs cols, red/green change cols
+    """
+    function html_gainlose( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = if c == 1
+            "blue"
+        elseif c >= ncols - 2
+            if data[r,c] < -0.1
+                "maroon"
+            elseif data[r,c] > 0.1
+                "olive"
+            else
+                "black"
+            end
+        else
+            "black"
+        end
+        push!(d, "color" => colour)
+        if r == nrows
+            push!(d, "background" => BG_NEUTRAL)
+        elseif c >= ncols - 3
+            push!(d, "background" => "#eee")
+        end
+        if(c == 1) || (r== nrows)
+            push!(d, "font-weight" => "bold")
+        end
+        return d
+    end
+
+    """
+    format cols at end green for good, red for bad.
+    """
+    hgainlose = HtmlHighlighter( (data, r, c)->true,  html_gainlose )
+
+    pts, labwidth = if ncols < 7
+        "9pt",
+        "20%"
+    elseif ncols < 12
+        "7pt",
+        "15%"
+    else
+        "5pt",
+        "12%"
+    end
+
+    gl[!,1] = Utils.pretty.(gl[!,1]) # labels on RHS
+    io = IOBuffer()
+    pretty_table(
+        io, gl;
+        backend = :html,
+        formatters=[fm_gl],
+        table_class = "table table-sm", # FIXME this is Bootstrap-specific
+        # data_column_widths = [1=>"25%"],
+        highlighters = [hgainlose],
+        column_labels=gl_rename_cols( names(gl)),
+        alignment=[:l,fill(:r,ncols-1)...],
+        table_format=HTML_TABLE_FORMAT,
+        # style=std_table_style( pts ),
+        title = title )
+    return String(take!(io))
+end
+
+
 
 
 

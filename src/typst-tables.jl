@@ -12,8 +12,6 @@ const TYPST_NO_BORDERS = TypstTableBorders(
 
 const TYPST_TABLE_FORMAT = TypstTableFormat(borders=TYPST_NO_BORDERS, vertical_lines_at_data_columns= :none)
 
-
-
 function typst_std_table_style( pts )
     return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
 end
@@ -94,3 +92,81 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_TYPST )
         formatters=[crosstab_fm] )
     return String(take!(io))
 end
+
+
+function format_gain_lose( title::String, gl :: DataFrame, ::MV_TYPST; cell_prec=0 )::String
+
+    nrows, ncols = size( gl )
+
+    function fm_gl(v, r, c)
+        return if c == 1
+            v
+            elseif v == 0
+            "-"
+            elseif (c <= ncols - 3) || (c == ncols)
+            Format.format(v, precision=cell_prec, commas=true)
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+    function typst_gainlose( h, data, r, c )
+        d = Pair{String,String}[]
+        colour = if c == 1
+            "blue"
+            elseif c >= ncols - 2
+            if data[r,c] < -0.1
+                "maroon"
+                elseif data[r,c] > 0.1
+                "olive"
+            else
+                "black"
+            end
+        else
+            "black"
+        end
+        push!(d, "text-fill" => colour)
+        if r == nrows
+            push!(d, "fill" => "gray")
+            elseif c >= ncols - 3
+            push!(d, "fill" => "silver")
+        end
+        if(c == 1) || (r== nrows)
+            push!(d, "text-weight" => "bold")
+        end
+        return d
+    end
+
+    """
+    format cols at end green for good, red for bad.
+    """
+    hgainlose = TypstHighlighter( (data, r, c)->true,  typst_gainlose )
+
+    pts, labwidth = if ncols < 7
+        "9pt",
+        "20%"
+        elseif ncols < 12
+        "7pt",
+        "15%"
+    else
+        "5pt",
+        "12%"
+    end
+
+    gl[!,1] = Utils.pretty.(gl[!,1]) # labels on RHS
+    io = IOBuffer()
+    pretty_table(
+        io, gl;
+        backend = :typst,
+        formatters=[fm_gl],
+        data_column_widths = [1=>"25%"],
+        highlighters = [hgainlose],
+        column_labels=gl_rename_cols( names(gl)),
+        alignment=[:l,fill(:r,ncols-1)...],
+        table_format=TYPST_TABLE_FORMAT,
+        style=typst_std_table_style( pts ),
+        title = title )
+    return String(take!(io))
+end
+
