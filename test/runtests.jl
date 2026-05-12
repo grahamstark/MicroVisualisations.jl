@@ -139,4 +139,9 @@ include( "runner-functions.jl")
     summary_strings = format_headline_numbers( summary.headline_figures[2] )
     @show summary_strings
 
+    open( joinpath( tmpdir, "main-output.typ"), "w") do io
+
+
+    end
+
 end

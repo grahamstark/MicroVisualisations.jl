@@ -1,3 +1,8 @@
+#=
+
+trials rather than tests
+
+=#
 module TransTables
 
 using Format,DataFrames,Colors,ArgCheck

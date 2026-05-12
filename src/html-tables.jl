@@ -244,3 +244,30 @@ function format_std_short_costs(
 end
 
 
+"""
+Catch all with labels in col1, numbers in the rest
+"""
+function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2 )::String
+
+    function fm_df(v, r, c)
+        return if (c == 1) || (! (typeof(v) <: Number ))
+            v
+        else
+            Format.format(v, precision=prec, commas=true)
+        end
+    end
+
+    nrows, ncols = size(df)
+    hl = HtmlHighlighter((data, r, c)->c==1,  ["font-weight"=>"bold"] )
+    io = IOBuffer()
+    pretty_table( io, df,
+                    backend = :html,
+                    formatters=[fm_df],
+                    table_class = "table table-sm",
+                    table_format=HTML_TABLE_FORMAT,
+                    column_labels = ["",pretty.( names(df )[2:end])...],
+                    # style=std_table_style("8pt"),
+                    alignment=[:l,fill(:r,ncols-1)...],
+                    highlighters = [hl] )
+    return String( take!( io ))
+end

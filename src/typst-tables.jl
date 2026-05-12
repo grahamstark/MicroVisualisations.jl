@@ -251,7 +251,7 @@ end
 """
 Catch all with labels in col1, numbers in the rest
 """
-function labelled_frame_to_table( df :: DataFrame; prec=2 )::String
+function labelled_frame_to_table( df :: DataFrame,  ::MV_TYPST; prec=2 )::String
 
     function fm_df(v, r, c)
         return if (c == 1) || (! (typeof(v) <: Number ))
@@ -269,7 +269,7 @@ function labelled_frame_to_table( df :: DataFrame; prec=2 )::String
         formatters=[fm_df],
         table_format=  TYPST_TABLE_FORMAT,
         column_labels = ["",pretty.( names(df )[2:end])...],
-        style=std_table_style("8pt"),
+        style=typst_std_table_style("8pt"),
         data_column_widths = [1=>"20%"],
         alignment=[:l,fill(:r,ncols-1)...],
         highlighters = [hl] )
