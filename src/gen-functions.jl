@@ -29,23 +29,6 @@ end
 
 h1 = HtmlHighlighter( ( data, r, c ) -> (c == 1), ["font_weight"=>"bold", "color"=>"slategrey"])
 
-"""
-fixme change this to set class text-success/text-warn
-"""
-function f_gainlose( h, data, r, c ) 
-    colour = "black"
-    if c >= 7 # av, pct cols at end
-        colour = if data[r,c] < -0.1
-            "darkred"
-        elseif data[r,c] > 0.1
-            "darkgreen"
-        else
-            "black"
-        end
-    end
-    return ["color" => colour ]
-    # HtmlDecoration( color=colour )
-end
 
 """
 format cols at end green for good, red for bad.
@@ -53,14 +36,14 @@ format cols at end green for good, red for bad.
 h7 = HtmlHighlighter( (data, r, c)->(c >= 7), f_gainlose )
 ht = HtmlHighlighter( (data, r, c)->(r >= 7), ["font_weight"=>"bold", "color"=>"black", "background"=>"#ddddff"] )
 
-function format_sfc( title::String, sf :: DataFrame )
+function format_sfc( title::String, sf :: DataFrame; ::MV_HTML )
     sf[!,1] = pretty.(sf[!,1]) # labels on RHS
     io = IOBuffer()
-    pretty_table( 
-        io, 
-        sf[!,1:end]; 
+    pretty_table(
+        io,
+        sf[!,1:end];
         backend = :html,
-        formatters=[fm3], 
+        formatters=[fm3],
         alignment=[:l,fill(:r,11)...],
         highlighters = [ht],
         table_class="table table-sm table-striped table-responsive",

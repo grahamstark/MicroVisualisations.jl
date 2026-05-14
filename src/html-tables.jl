@@ -271,3 +271,58 @@ function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2 )::String
                     highlighters = [hl] )
     return String( take!( io ))
 end
+
+
+function format_sfc( title::String, sf :: DataFrame; ::MV_HTML )
+    """
+    fixme change this to set class text-success/text-warn
+    """
+    function f_gainlose( h, data, r, c )
+        colour = "black"
+        if c >= 7 # av, pct cols at end
+            colour = if data[r,c] < -0.1
+                "darkred"
+                elseif data[r,c] > 0.1
+                "darkgreen"
+            else
+                "black"
+            end
+        end
+        return ["color" => colour ]
+        # HtmlDecoration( color=colour )
+    end
+
+    """
+    format cols at end green for good, red for bad.
+    """
+    h7 = HtmlHighlighter( (data, r, c)->(c >= 7), f_gainlose )
+    ht = HtmlHighlighter( (data, r, c)->(r >= 7), ["font_weight"=>"bold", "color"=>"black", "background"=>"#ddddff"] )
+    sf[!,1] = pretty.(sf[!,1]) # labels on RHS
+
+    io = IOBuffer()
+    pretty_table(
+        io,
+        sf[!,1:end];
+        backend = :html,
+        formatters=[fm3],
+        alignment=[:l,fill(:r,11)...],
+        highlighters = [ht],
+        table_class="table table-sm table-striped table-responsive",
+        title = title,
+        column_labels=[[
+            "Taxable Income",
+            "Tie Rate",
+            "AETR Rate",
+            "Num People",
+            "Static Baseline",
+            "Static Reform",
+            "Static Change",
+            "Intensive Change",
+            "Extensive Change",
+            "Total Behavioural Change",
+            "SFC Change",
+            "Behavioural Offset"],
+        ["£pa","","", "",MultiColumn(7,"£m pa"),"%"]] )
+        return String(take!(io))
+end
+
