@@ -26,7 +26,7 @@ function zip_dump( settings :: Settings )
     return dirname
 end
 
-
+#=
 h1 = HtmlHighlighter( ( data, r, c ) -> (c == 1), ["font_weight"=>"bold", "color"=>"slategrey"])
 
 
@@ -90,6 +90,8 @@ function format_gainlose(title::String, gl::DataFrame)
             "Pct. Change"])
     return String(take!(io))
 end
+
+=#
 
 function get_examples( 
     settings :: Settings, 

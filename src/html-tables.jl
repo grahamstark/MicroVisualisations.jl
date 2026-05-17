@@ -273,7 +273,7 @@ function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2 )::String
 end
 
 
-function format_sfc( title::String, sf :: DataFrame; ::MV_HTML )
+function format_sfc( title::String, sf :: DataFrame, ::MV_HTML )
     """
     fixme change this to set class text-success/text-warn
     """

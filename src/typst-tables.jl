@@ -278,7 +278,7 @@ end
 
 
 
-function format_sfc( title::String, sf :: DataFrame; ::MV_HTML )
+function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
     """
     fixme change this to set class text-success/text-warn
     """
