@@ -331,5 +331,38 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
         return String(take!(io))
 end
 
+function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame, ::MV_TYPST ) :: AbstractString
+    n1 = incs1[1,:net_cost]
+    n2 = incs2[1,:net_cost]
+    # add in employer's NI
+    eni1 = incs1[1,:employers_ni]
+    eni2 = incs2[1,:employers_ni]
+    d = (n1-eni1) - (n2-eni2)
+    d /= 1_000_000
+    background = BG_NEUTRAL
+    textcol = hex(NEUTRAL_COLOUR)
+    extra = ""
+    change_str = "In total, your changes cost less than £1m"
+    change_val = ""
+    if abs(d) > 1
+        change_val = f0(abs(d))
+        if d > 0
+            textcol = hex(GOOD_COLOUR)
+            change_str = "In total, your changes raise £"
+            background = BG_IMPROVE
+            extra = "m."
+        else
+            textcol = hex(BAD_COLOUR)
+            background = BG_WORSEN
+            change_str = "In total, your changes cost £"
+            extra = "m."
+        end
+    end
+    # costs = "<div class='alert $colour'>$change_str<strong>$change_val</strong>$extra</div>"
+    msg = " $change_str#text( rgb(\"#$(textcol)\"), weight:\"bold\", \"$(change_val)\" )$extra"
+    s = "#block( fill:rgb(\"$background\"), inset: 8pt, radius: 4pt, [$msg] )"
+    return s
+
+end
 
 

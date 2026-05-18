@@ -9,6 +9,8 @@ struct MV_HTML end
 struct MV_TYPST end
 struct MV_MARKDOWN end
 
+
+
 const DEFAULT_FONT = "Urbanist"
 
 # colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
@@ -17,6 +19,11 @@ BG_BLACK = "#000000"
 BG_NEUTRAL = "#e2e3e5" # Boodstrap 5 secondary
 BG_WORSEN = "#f8d7da" # danger
 BG_IMPROVE = "#d1e7dd" # success
+
+const GOOD_COLOUR = colorant"seagreen"
+const BAD_COLOUR = colorant"firebrick"
+const NEUTRAL_COLOUR = colorant"black"
+
 
 const MR_UP_GOOD = [
     0, # "Less than zero"
@@ -127,14 +134,13 @@ function reverse_crosstab( df :: AbstractDataFrame )::DataFrame
     return reverse(df,1,nrows-1)[!,[1,ncols-1:-1:2...,ncols]]
 end
 
-
 """
 Green->Red pallette In Julia Color.jl RGBs
 """
-good_to_bad_pallette( num_grades :: Integer )::Vector = range( colorant"seagreen", stop=colorant"firebrick", length=num_grades )
+good_to_bad_pallette( num_grades :: Integer )::Vector = range( GOOD_COLOUR, stop=BAD_COLOUR, length=num_grades )
 
 """
 Red->Green pallette In Julia Color.jl RGBs
 """
-bad_to_good_pallette( num_grades :: Integer )::Vector = range( colorant"firebrick", stop=colorant"seagreen", length=num_grades )
+bad_to_good_pallette( num_grades :: Integer )::Vector = range( BAD_COLOUR, stop=GOOD_COLOUR, length=num_grades )
 

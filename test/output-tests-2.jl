@@ -63,6 +63,7 @@ open( "tmp/$(filename).html", "w") do io
     println( io, mv.format_gain_lose("gain lose by tenure", gl, mv.MV_HTML()))
     println( io, mv.format_std_short_costs( cf, mv.MV_HTML(); up_is_good=mv.COST_UP_GOOD, prec=0))
     println( io, mv.labelled_frame_to_table( cf , mv.MV_HTML(); prec=0))
+    println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_HTML()))
     println( io, "</body></html>")
 end
 
@@ -74,6 +75,7 @@ open( "tmp/$(filename).typ", "w") do io
     println( io, mv.format_gain_lose("gain lose by tenure", gl, mv.MV_TYPST()))
     println( io, mv.format_std_short_costs( cf, mv.MV_TYPST(); up_is_good=mv.COST_UP_GOOD, prec=0))
     println( io, mv.labelled_frame_to_table( cf, mv.MV_TYPST(); prec=0))
+    println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_TYPST()))
 end
 
 typst_command = `typst compile tmp/$(filename).typ`

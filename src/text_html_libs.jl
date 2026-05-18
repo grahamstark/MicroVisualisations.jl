@@ -626,5 +626,33 @@ function construct_html( settings::Settings, results::NamedTuple, summary::Named
                 summary.income_summary[1],
                 summary.income_summary[2]))
         )
+end
 
+
+function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame, ::MV_HTML ) :: String
+    n1 = incs1[1,:net_cost]
+    n2 = incs2[1,:net_cost]
+    # add in employer's NI
+    eni1 = incs1[1,:employers_ni]
+    eni2 = incs2[1,:employers_ni]
+    d = (n1-eni1) - (n2-eni2)
+    d /= 1_000_000
+    colour = "alert-info"
+    extra = ""
+    change_str = "In total, your changes cost less than £1m"
+    change_val = ""
+    if abs(d) > 1
+        change_val = f0(abs(d))
+        if d > 0
+            colour = "alert-success"
+            change_str = "In total, your changes raise £"
+            extra = "m."
+        else
+            colour = "alert-danger"
+            change_str = "In total, your changes cost £"
+            extra = "m."
+        end
+    end
+    costs = "<div class='alert $colour'>$change_str<strong>$change_val</strong>$extra</div>"
+    return costs
 end
