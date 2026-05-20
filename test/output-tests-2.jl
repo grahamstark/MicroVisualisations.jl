@@ -50,6 +50,7 @@ gl = CSV.File( "sample_output/gain-lose-by-tenure-2-vs-1.csv")|>DataFrame
 incs1 = CSV.File( "sample_output/income_summary_1.csv")|>DataFrame
 incs2 = CSV.File( "sample_output/income_summary_2.csv")|>DataFrame
 cf = mv.costs_dataframe( incs1, incs2 )
+dc = mv.detailed_cost_dataframe( incs1, incs2 )
 
 sevcols = mv.bad_to_good_pallette( size(df)[1])
 sevcolsm = mv.bad_to_good_pallette( size(dfm)[1])
@@ -64,6 +65,8 @@ open( "tmp/$(filename).html", "w") do io
     println( io, mv.format_std_short_costs( cf, mv.MV_HTML(); up_is_good=mv.COST_UP_GOOD, prec=0))
     println( io, mv.labelled_frame_to_table( cf , mv.MV_HTML(); prec=0))
     println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_HTML()))
+    println( io, mv.labelled_frame_to_table( dc , mv.MV_HTML(); prec=0))
+
     println( io, "</body></html>")
 end
 
@@ -76,6 +79,7 @@ open( "tmp/$(filename).typ", "w") do io
     println( io, mv.format_std_short_costs( cf, mv.MV_TYPST(); up_is_good=mv.COST_UP_GOOD, prec=0))
     println( io, mv.labelled_frame_to_table( cf, mv.MV_TYPST(); prec=0))
     println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_TYPST()))
+    println( io, mv.labelled_frame_to_table( dc , mv.MV_TYPST(); prec=0))
 end
 
 typst_command = `typst compile tmp/$(filename).typ`

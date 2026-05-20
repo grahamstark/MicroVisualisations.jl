@@ -145,35 +145,6 @@ function format_costs_table( incs1 :: DataFrame, incs2 :: DataFrame )
         caption="Tax Liabilities and Benefit Entitlements, £m pa, 2025/26" )
 end
 
-
-function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame ) :: String
-    n1 = incs1[1,:net_cost]
-    n2 = incs2[1,:net_cost]
-    # add in employer's NI
-    eni1 = incs1[1,:employers_ni]
-    eni2 = incs2[1,:employers_ni]
-    d = (n1-eni1) - (n2-eni2)
-    d /= 1_000_000
-    colour = "alert-info"
-    extra = ""
-    change_str = "In total, your changes cost less than £1m"
-    change_val = ""
-    if abs(d) > 1
-        change_val = f0(abs(d))
-        if d > 0
-            colour = "alert-success"
-            change_str = "In total, your changes raise £"
-            extra = "m."
-        else
-            colour = "alert-danger"
-            change_str = "In total, your changes cost £"
-            extra = "m."
-        end
-    end
-    costs = "<div class='alert $colour'>$change_str<strong>$change_val</strong>$extra</div>"
-    return costs
-end
-
 function format_mr_table( mr1, mr2 )
     df = mr_dataframe( mr1.hist, mr2.hist, mr1.mean, mr2.mean, mr1.median, mr2.median )
     n = size(df)[1]
@@ -186,29 +157,6 @@ function format_mr_table( mr1, mr2 )
     return table
 end
 
-
-function format_ineq_table( ineq1 :: InequalityMeasures, ineq2 :: InequalityMeasures )
-    df = ineq_dataframe( ineq1, ineq2 )
-    up_is_good = fill( -1, 6 )
-    return frame_to_table( 
-        df, 
-        prec=2, 
-        up_is_good=up_is_good )
-end
-
-
-function format_pov_table(
-    pov1 :: PovertyMeasures, 
-    pov2 :: PovertyMeasures,
-    ch1  :: GroupPoverty, 
-    ch2  :: GroupPoverty )
-    df = pov_dataframe( pov1, pov2, ch1, ch2 )
-    up_is_good = fill( -1, 7 )
-    return frame_to_table( 
-        df, 
-        prec=2, 
-        up_is_good=up_is_good )
-end
 
 
 function format_gain_lose_table_v2( gl :: NamedTuple )

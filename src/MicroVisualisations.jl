@@ -96,14 +96,15 @@ export
       make_short_summary
 
 include( "display_constants.jl")
+include( "table_libs.jl")
 include( "tables-common.jl")
 include( "html-tables.jl")
 include( "typst-tables.jl")
+include( "table-generation.jl")
 
 include( "examples.jl")
 include( "graphics.jl")
 include( "gen-functions.jl")
-include( "table_libs.jl")
 include( "text_html_libs.jl")
 include( "standard-formats.jl")
 

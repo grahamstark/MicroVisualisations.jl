@@ -251,7 +251,7 @@ end
 """
 Catch all with labels in col1, numbers in the rest
 """
-function labelled_frame_to_table( df :: DataFrame,  ::MV_TYPST; prec=2 )::String
+function labelled_frame_to_table( df :: DataFrame,  ::MV_TYPST; prec=2, labels=nothing )::String
 
     function fm_df(v, r, c)
         return if (c == 1) || (! (typeof(v) <: Number ))
@@ -264,11 +264,14 @@ function labelled_frame_to_table( df :: DataFrame,  ::MV_TYPST; prec=2 )::String
     nrows, ncols = size(df)
     hl = TypstHighlighter((data, r, c)->c==1,  ["text-weight"=>"bold"] )
     io = IOBuffer()
+    if isnothing( labels )
+       labels = ["",pretty.( names(df )[2:end])...]
+    end
     pretty_table( io, df,
         backend = :typst,
         formatters=[fm_df],
         table_format=  TYPST_TABLE_FORMAT,
-        column_labels = ["",pretty.( names(df )[2:end])...],
+        column_labels = labels,
         style=typst_std_table_style("8pt"),
         data_column_widths = [1=>"20%"],
         alignment=[:l,fill(:r,ncols-1)...],
@@ -331,6 +334,13 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
         return String(take!(io))
 end
 
+"""
+
+Take the `net_cost` field from two incomes dataframes, and print A string like:
+
+    #block( fill:rgb("#d1e7dd"), inset: 8pt, radius: 4pt, [ In total, your changes raise £#text( rgb("#2E8B57"), weight:"bold", "1,945" )m.] )
+
+"""
 function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame, ::MV_TYPST ) :: AbstractString
     n1 = incs1[1,:net_cost]
     n2 = incs2[1,:net_cost]
@@ -365,4 +375,36 @@ function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame, ::MV_TYPST )
 
 end
 
+
+
+function format_bc( title::String, bc::DataFrame, ::MV_TYPST )
+
+    function fm(v, r,c)
+        return if c in [1,7]
+            v
+        elseif c == 4
+            if abs(v) > 4000
+                "Discontinuity"
+            else
+                Format.format(v, precision=3, commas=false)
+            end
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+    bc.char_labels = BCCalcs.get_char_labels(size(bc)[1])
+    pretty_table(
+        String,
+        bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction]];
+        backend = :typst,
+        formatters=[fm],
+        allow_html_in_cells=true,
+        table_class="table table-sm table-striped table-responsive",
+        table_format=TYPST_TABLE_FORMAT,
+        column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"],
+        alignment=[fill(:r,6)...,:l],
+        title = title )
+end
 

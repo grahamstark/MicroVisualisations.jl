@@ -247,7 +247,7 @@ end
 """
 Catch all with labels in col1, numbers in the rest
 """
-function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2 )::String
+function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2, labels=nothing )::String
 
     function fm_df(v, r, c)
         return if (c == 1) || (! (typeof(v) <: Number ))
@@ -260,13 +260,15 @@ function labelled_frame_to_table( df :: DataFrame, ::MV_HTML; prec=2 )::String
     nrows, ncols = size(df)
     hl = HtmlHighlighter((data, r, c)->c==1,  ["font-weight"=>"bold"] )
     io = IOBuffer()
+    if isnothing( labels )
+       labels = ["",pretty.( names(df )[2:end])...]
+    end
     pretty_table( io, df,
                     backend = :html,
                     formatters=[fm_df],
                     table_class = "table table-sm",
                     table_format=HTML_TABLE_FORMAT,
-                    column_labels = ["",pretty.( names(df )[2:end])...],
-                    # style=std_table_style("8pt"),
+                    column_labels = labels,
                     alignment=[:l,fill(:r,ncols-1)...],
                     highlighters = [hl] )
     return String( take!( io ))
@@ -325,4 +327,72 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_HTML )
         ["£pa","","", "",MultiColumn(7,"£m pa"),"%"]] )
         return String(take!(io))
 end
+
+function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame ) :: String
+    n1 = incs1[1,:net_cost]
+    n2 = incs2[1,:net_cost]
+    # add in employer's NI
+    eni1 = incs1[1,:employers_ni]
+    eni2 = incs2[1,:employers_ni]
+    d = (n1-eni1) - (n2-eni2)
+    d /= 1_000_000
+    colour = "alert-info"
+    extra = ""
+    change_str = "In total, your changes cost less than £1m"
+    change_val = ""
+    if abs(d) > 1
+        change_val = f0(abs(d))
+        if d > 0
+            colour = "alert-success"
+            change_str = "In total, your changes raise £"
+            extra = "m."
+        else
+            colour = "alert-danger"
+            change_str = "In total, your changes cost £"
+            extra = "m."
+        end
+    end
+    costs = "<div class='alert $colour'>$change_str<strong>$change_val</strong>$extra</div>"
+    return costs
+end
+
+function format_bc( title::String, bc::DataFrame, ::MV_HTML )
+
+    function fm(v, r,c)
+        return if c in [1,7]
+            v
+        elseif c == 4
+            if abs(v) > 4000
+                "Discontinuity"
+            else
+                Format.format(v, precision=3, commas=false)
+            end
+        else
+            Format.format(v, precision=2, commas=true)
+        end
+        s
+    end
+
+    function add_hidden_to_label( lab :: String )::String
+        i = rand(100000:100000000)
+        id = "id-$i"
+        return "<button class='btn btn-primary' type='button' data-bs-toggle='collapse' data-bs-target='#$(id)' aria-expanded='false' aria-controls='collapseExample'>More Detail</button><div class='collapse' id='$id'><div class='card card-body'>$(lab)</div></div>"
+    end
+
+    bc.char_labels = BCCalcs.get_char_labels(size(bc)[1])
+    bc[!,:simplelabel_hide] = add_hidden_to_label.( bc.simplelabel )
+    pretty_table(
+        String,
+        bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction,:simplelabel_hide]];
+        backend = :html,
+        formatters=[fm],
+        allow_html_in_cells=true,
+        table_class="table table-sm table-striped table-responsive",
+        column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"],
+        alignment=[fill(:r,6)...,:l],
+        title = title )
+end
+
+
+
 
