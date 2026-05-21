@@ -54,8 +54,10 @@ export
     construct_tables,
     run_settings_to_df,
     construct_images,
+    format_headline_numbers,
     AVAILABLE_GRAPHS,
-    AVAILABLE_TABLES
+    AVAILABLE_TABLES,
+    AVAILABLE_OTHER_ITEMS
 
 include( "misc-constants.jl")
 include( "tables-common.jl")
