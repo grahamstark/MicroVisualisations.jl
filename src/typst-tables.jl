@@ -16,6 +16,9 @@ function typst_std_table_style( pts )
     return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
 end
 
+# TODO format_hh_summary( hh )
+# TODO format_pers_inc_table( results )
+
 """
 My 1st attempt at a closure: see:
 """
@@ -407,7 +410,7 @@ function format_bc( title::String, bc::DataFrame, ::MV_TYPST )::String
         style=typst_std_table_style("8pt"),
         table_format=TYPST_TABLE_FORMAT,
         column_labels = ["ID", "Earnings £pw","Net Income £pw", "METR"],
-        alignment=fill(:r,4),
+        alignment=fill(:r,4)...],
         title = title )
     return String(take!(io))
 end

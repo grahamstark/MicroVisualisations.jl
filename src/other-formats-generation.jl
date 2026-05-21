@@ -1,4 +1,4 @@
-const AVAILABLE_OTHER_FORMATS = OrderedDict([
+const AVAILABLE_OTHER_ITEMS = OrderedDict([
     :headline_numbers => "A summary of headline numbers.",
 
 

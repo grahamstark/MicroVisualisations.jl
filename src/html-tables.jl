@@ -9,6 +9,9 @@ function html_table_style( pts :: AbstractString ) :: String
     return HtmlTableStyle( table=["text-font"=>"$(DEFAULT_FONT)", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
 end
 
+# TODO format_hh_summary( hh )
+# TODO format_pers_inc_table( results )
+
 
 """
 Create an html cell highlighter function for prettyTables.
