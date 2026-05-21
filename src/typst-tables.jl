@@ -66,7 +66,7 @@ function make_highlighter( numcols::Integer, sevcols::Vector )::Function
 end
 
 
-function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_TYPST )
+function format_crosstab(df :: DataFrame, ::MV_TYPST )
     nrows, ncols = size(df)
     pts, labwidth = if nrows < 7
         "9pt",
@@ -78,6 +78,8 @@ function format_crosstab(df :: DataFrame, sevcols :: Vector, ::MV_TYPST )
         "5pt",
         "12%"
     end
+
+    sevcols = rgb2typ.(bad_to_good_pallette( ncols ))
     TABLE_STYLE = TypstTableStyle( table=["text-font"=>"$(DEFAULT_FONT)", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black"] )
     BODY_HL = TypstHighlighter( (data, r, c)->true, make_highlighter( nrows, sevcols ) ) #
     io = IOBuffer()

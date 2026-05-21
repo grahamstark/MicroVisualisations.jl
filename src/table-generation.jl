@@ -1,7 +1,10 @@
 
 
 
-function format_costs_table( incs1 :: DataFrame, incs2 :: DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )
+function format_costs_table(
+    incs1 :: DataFrame,
+    incs2 :: DataFrame,
+    format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     df = costs_dataframe( incs1, incs2 )
     nrows, ncols = size(df)
     # HACK - extra Wealth col at the end which may or may not appear, so...
@@ -11,7 +14,10 @@ function format_costs_table( incs1 :: DataFrame, incs2 :: DataFrame, format::Uni
     #    caption="Tax Liabilities and Benefit Entitlements, £m pa, 2025/26" )
 end
 
-function format_ineq_table( ineq1 :: InequalityMeasures, ineq2 :: InequalityMeasures, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )
+function format_ineq_table(
+    ineq1 :: InequalityMeasures,
+    ineq2 :: InequalityMeasures,
+    format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     df = ineq_dataframe( ineq1, ineq2 )
     up_is_good = fill( -1, 6 )
     return format_std_short_costs(
@@ -25,13 +31,13 @@ function format_pov_table(
     pov2 :: PovertyMeasures,
     ch1  :: GroupPoverty,
     ch2  :: GroupPoverty,
-    format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )
+    format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     df = pov_dataframe( pov1, pov2, ch1, ch2 )
     up_is_good = fill( -1, 7 )
     return format_std_short_costs( cf, format; up_is_good=up_is_good, prec=2)
 end
 
-function format_gain_lose_table_v2( gl :: NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )
+function format_gain_lose_table_v2( gl :: NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     lose = format(gl.losers, commas=true, precision=0)
     gain = format(gl.gainers, commas=true, precision=0)
     nc = format(gl.nc, commas=true, precision=0)
@@ -47,41 +53,71 @@ function format_gain_lose_table_v2( gl :: NamedTuple, format::Union{MV_MARKDOWN,
     return labelled_frame_to_table( df, format; labels = ["","",""] )
 end
 
+function format_mr_table( mr1, mr2, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
+    df = mr_dataframe( mr1.hist, mr2.hist, mr1.mean, mr2.mean, mr1.median, mr2.median )
+    n = size(df)[1]
+    return labelled_frame_to_table(
+        df,
+        format;
+        prec=0 )
+end
+
+function run_settings_to_df( settings::Settings)::DataFrame
+    df = DataFrame( name=fill("",0), value=fill( "",0 ))
+    pov_line_str = if settings.ineq_income_measure ==  pl_from_settings
+        "Poverty Line Set to : $(fm( settings.poverty_line))"
+    else
+        ""
+    end
+    push!( df, ["ScotBen version", "(string(pkgversion(ScottishTaxBenefitModel)))"] )
+    push!( df, ["Incomes uprated to", "$(settings.to_y) q$(settings.to_q)"] )
+    push!( df, ["Income Type Used for Poverty/Inequality/Decile Graphs", "$(INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure])"] )
+    push!( df, ["Income Type used for Gain-Lose tables", "$(INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure])"])
+    push!( df, ["Populations weighed to", "$(settings.weighting_target_year)"] )
+    push!( df, ["Poverty Line", "$(POVERTY_LINE_SOURCE_STRS[settings.poverty_line_source])** $(pov_line_str)"])
+    push!( df, ["Means-Tested Benefits Phase in assumption", "(MT_ROUTING_STRS[settings.means_tested_routing])"] )
+    push!( df, ["Disability Benefits Phase in assumption", "Scottish System 100% phased in."])
+    push!( df, ["Dodgy Means-Tested Benefits takeup corrections applied", "$(settings.do_dodgy_takeup_corrections)"] );
+    return df
+end
+
 """
 A Named Tuple with all the formatted outputs (except the budget constraints).
 
 """
 function construct_tables( settings::Settings, results::NamedTuple, summary::NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::NamedTuple
     return (;
-        overall_cost_table = format_overall_cost(
+        overall_cost_table = format_overall_cost( # x
             summary.income_summary[1],
             summary.income_summary[2],
             format ),
-        costs_table = format_costs_table(
+        costs_table = format_costs_table( # x
             summary.income_summary[1],
             summary.income_summary[2],
             format ),
-        hhtype_gl = format_gainlose("By Household Size",summary.gain_lose[2].hhtype_gl, format ),
+        hhtype_gl = format_gainlose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
         ten_gl = format_gainlose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
         dec_gl = format_gainlose("By Decile",summary.gain_lose[2].dec_gl, format ),
         children_gl = format_gainlose("By Numbers of Children",summary.gain_lose[2].children_gl, format ),
         reg_gl = format_gainlose("By Region",summary.gain_lose[2].reg_gl, format ),
-        sfc = format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], format),
-        gain_lose_summary = format_gain_lose_table_v2( summary.gain_lose[2], format ),
+        sfc = format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], format), # x
+        gain_lose_summary = format_gain_lose_table_v2( summary.gain_lose[2], format ), # x
         # println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
-        inequality_summary = format_ineq_table(
+        inequality_summary = format_ineq_table( # x
             summary.inequality[1],
             summary.inequality[2],
             format),
         metrs_table = format_mr_table( summary.metrs[1], summary.metrs[2], format ),
-        poverty_summary = format_pov_table( summary.poverty[1],
+        metrs_transitions = format_crosstab( summary.metrs[2].transmat_df, format ), # x
+        poverty_summary = format_pov_table( summary.poverty[1], # x
             summary.poverty[2],
             summary.child_poverty[1],
             summary.child_poverty[2],
             format),
-        poverty_transitions = format_pov_transitions( summary.povtrans_matrix[2], format),
-        run_settings_summary = format_run_settings_summary( settings ),
-        detailed_costs = costs_frame_to_table(detailed_cost_dataframe(
+        poverty_transitions = format_crosstab( summary.povtrans_matrix_df[2], format), # x
+
+        run_settings_summary = labelled_frame_to_table(run_settings_to_df( settings ), format ), # x
+        detailed_costs = labelled_frame_to_table(detailed_cost_dataframe( # x
                 summary.income_summary[1],
                 summary.income_summary[2],
                 format))

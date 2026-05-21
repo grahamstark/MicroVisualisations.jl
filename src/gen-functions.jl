@@ -1,20 +1,5 @@
-
-export DEFAULT_SYS, 
-    do_higher_rates_run,
-    do_higher_rates_run2,
-    draw_bc,
-    fes_run, 
-    format_bc_df, 
-    format_gainlose, 
-    format_sfc,
-    getbc,
-    get_change_target_hhs, 
-    get_examples
-
 const DEFAULT_SYS = get_default_system_for_fin_year(2026; scotland=true, autoweekly=false )
     
-
-
 function zip_dump( settings :: Settings )
     rname = basiccensor( settings.run_name )
     dirname = joinpath( settings.output_dir, rname ) 
@@ -25,73 +10,6 @@ function zip_dump( settings :: Settings )
     ZipFile.close(io)
     return dirname
 end
-
-#=
-h1 = HtmlHighlighter( ( data, r, c ) -> (c == 1), ["font_weight"=>"bold", "color"=>"slategrey"])
-
-
-"""
-format cols at end green for good, red for bad.
-"""
-h7 = HtmlHighlighter( (data, r, c)->(c >= 7), f_gainlose )
-ht = HtmlHighlighter( (data, r, c)->(r >= 7), ["font_weight"=>"bold", "color"=>"black", "background"=>"#ddddff"] )
-
-function format_sfc( title::String, sf :: DataFrame; ::MV_HTML )
-    sf[!,1] = pretty.(sf[!,1]) # labels on RHS
-    io = IOBuffer()
-    pretty_table(
-        io,
-        sf[!,1:end];
-        backend = :html,
-        formatters=[fm3],
-        alignment=[:l,fill(:r,11)...],
-        highlighters = [ht],
-        table_class="table table-sm table-striped table-responsive",
-        title = title,
-        column_labels=[[
-            "Taxable Income",
-            "Tie Rate",
-            "AETR Rate",
-            "Num People",
-            "Static Baseline",
-            "Static Reform",
-            "Static Change",
-            "Intensive Change",
-            "Extensive Change",
-            "Total Behavioural Change",
-            "SFC Change",
-            "Behavioural Offset"],
-            ["£pa","","", "",MultiColumn(7,"£m pa"),"%"]] )
-    return String(take!(io))
-end
-
-"""
-
-"""
-function format_gainlose(title::String, gl::DataFrame)
-    gl[!,1] = pretty.(gl[!,1]) # labels on RHS
-    io = IOBuffer()
-    pretty_table( 
-        io, 
-        gl[!,1:end-1]; 
-        backend = :html,
-        formatters=[fm], 
-        alignment=[:l,fill(:r,7)...],
-        highlighters = [h1,h7],
-        title = title,
-        table_class="table table-sm table-striped table-responsive", # bootstrap it
-        column_labels=["",
-            "Lose £10.01+",
-            "Lose £1.01-£10",
-            "No Change",
-            "Gain £1.01-£10",
-            "Gain £10.01+",
-            "Av. Change",
-            "Pct. Change"])
-    return String(take!(io))
-end
-
-=#
 
 function get_examples( 
     settings :: Settings, 

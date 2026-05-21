@@ -35,14 +35,12 @@ include( "runner-functions.jl")
 """"
     <html>
     <head>
-
-        <link rel="icon" href="https://triplepc.northumbria.ac.uk/images/favicon.png">
-        <link rel="stylesheet" href="https://triplepc.northumbria.ac.uk/css/bisite-bootstrap.css"/>
+        <link rel="icon" href="https://triplepc.virtual-worlds.scot/images/favicon.png">
+        <link rel="stylesheet" href="https://triplepc.virtual-worlds.scot/css/bisite-bootstrap.css"/>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css"/>
-        <script type='text/javascript' src='https://triplepc.northumbria.ac.uk/js/jquery.js'></script>
-        <script type='text/javascript' src='https://triplepc.northumbria.ac.uk/js/jquery.periodicalupdater.js'></script>
-        <script type='text/javascript' src='https://triplepc.northumbria.ac.uk/js/jquery.validate.js'></script>
-
+        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.js'></script>
+        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.periodicalupdater.js'></script>
+        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.validate.js'></script>
     </head>
     <body>
 """)

@@ -50,6 +50,7 @@ using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Utils
 using ScottishTaxBenefitModel.Weighting
 
+#=
 export
       GRAPHICS_ITEMS,
       HTML_ITEMS,
@@ -94,19 +95,20 @@ export
       make_example_card,
       make_popups,
       make_short_summary
+=#
 
-include( "display_constants.jl")
-include( "table_libs.jl")
+include( "standard-formats.jl")
+include( "misc-constants.jl")
+include( "gen-functions.jl")
 include( "tables-common.jl")
+include( "summary-dataframe-conversions.jl")
 include( "html-tables.jl")
 include( "typst-tables.jl")
 include( "table-generation.jl")
-
-include( "examples.jl")
+# TODO
+# include( "examples.jl")
 include( "graphics.jl")
-include( "gen-functions.jl")
-include( "text_html_libs.jl")
-include( "standard-formats.jl")
+# include( "text_html_libs.jl")
 
 function __init__()
     CairoMakie.activate!(type = "svg")

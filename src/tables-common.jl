@@ -8,7 +8,7 @@ Constants shared between all formats of table we support
 struct MV_HTML end
 struct MV_TYPST end
 struct MV_MARKDOWN end
-
+const AllFormats = Union{MV_MARKDOWN,MV_HTML,MV_TYPST}
 
 
 const DEFAULT_FONT = "Urbanist"
