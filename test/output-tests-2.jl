@@ -49,6 +49,8 @@ df = mv.fixup_transitions_matrix( df )
 gl = CSV.File( "sample_output/gain-lose-by-tenure-2-vs-1.csv")|>DataFrame
 incs1 = CSV.File( "sample_output/income_summary_1.csv")|>DataFrame
 incs2 = CSV.File( "sample_output/income_summary_2.csv")|>DataFrame
+bc = CSV.File( "sample_output/bc-example.csv")|>DataFrame
+
 cf = mv.costs_dataframe( incs1, incs2 )
 dc = mv.detailed_cost_dataframe( incs1, incs2 )
 

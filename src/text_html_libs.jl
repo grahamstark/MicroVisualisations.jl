@@ -157,8 +157,6 @@ function format_mr_table( mr1, mr2 )
     return table
 end
 
-
-
 function format_gain_lose_table_v2( gl :: NamedTuple )
     lose = format(gl.losers, commas=true, precision=0)
     gain = format(gl.gainers, commas=true, precision=0)
