@@ -718,7 +718,7 @@ function fig_to_svg_string( f::Figure)::AbstractString
 end
 
 #  TODO
-const GRAPHICS_ITEMS = OrderedDict([
+const AVAILABLE_GRAPHS = OrderedDict([
         :summary_graphs => "",
         :summary_graphs_v2 => "",
         :taxable_graph => "draw_taxable_graph( settings, results, summary, sys )",

@@ -50,52 +50,12 @@ using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Utils
 using ScottishTaxBenefitModel.Weighting
 
-#=
 export
-      GRAPHICS_ITEMS,
-      HTML_ITEMS,
-      PRE_COLOUR,
-      POST_COLOUR,
-      PRE_COLOURS,
-      POST_COLOURS,
-      construct_html,
-      construct_images,
-      costs_frame_to_table,
-      detailed_cost_dataframe,
-      draw_bc,
-      draw_deciles_barplot,
-      draw_hbai_thumbnail,
-      draw_hbai_graphs,
-      draw_incomes_vs_bands,
-      draw_lorenz_curve,
-      draw_metrs_hist,
-      draw_metrs,
-      draw_metrs2,
-      draw_summary_graphs,
-      draw_summary_graphs_v2,
-      draw_tax_rates,
-      draw_taxable_graph,
-      fig_to_svg_string,
-      format_and_class_full,
-      format_bc_df,
-      format_bc_df,
-      format_costs_table,
-      format_gain_lose_table_v2,
-      format_gainlose,
-      format_headline_numbers,
-      format_hh_summary,
-      format_ineq_table,
-      format_mr_table,
-      format_overall_cost,
-      format_pers_inc_table,
-      format_pov_table,
-      format_pov_transitions,
-      format_run_settings_summary,
-      format_sfc,
-      make_example_card,
-      make_popups,
-      make_short_summary
-=#
+    construct_tables,
+    run_settings_to_df,
+    construct_images,
+    AVAILABLE_GRAPHS,
+    AVAILABLE_TABLES
 
 include( "standard-formats.jl")
 include( "misc-constants.jl")
@@ -108,7 +68,6 @@ include( "table-generation.jl")
 # TODO
 # include( "examples.jl")
 include( "graphics.jl")
-# include( "text_html_libs.jl")
 
 function __init__()
     CairoMakie.activate!(type = "svg")
