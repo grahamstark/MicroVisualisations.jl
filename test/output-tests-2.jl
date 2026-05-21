@@ -1,4 +1,4 @@
-using CSV,DataFrames, Test
+using CSV,DataFrames, Test, PrettyTables
 import MicroVisualisations as mv
 
 const filename = "table1"
@@ -50,7 +50,7 @@ gl = CSV.File( "sample_output/gain-lose-by-tenure-2-vs-1.csv")|>DataFrame
 incs1 = CSV.File( "sample_output/income_summary_1.csv")|>DataFrame
 incs2 = CSV.File( "sample_output/income_summary_2.csv")|>DataFrame
 bc = CSV.File( "sample_output/bc-example.csv")|>DataFrame
-
+pretty_table(bc)
 cf = mv.costs_dataframe( incs1, incs2 )
 dc = mv.detailed_cost_dataframe( incs1, incs2 )
 
@@ -68,6 +68,7 @@ open( "tmp/$(filename).html", "w") do io
     println( io, mv.labelled_frame_to_table( cf , mv.MV_HTML(); prec=0))
     println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_HTML()))
     println( io, mv.labelled_frame_to_table( dc , mv.MV_HTML(); prec=0))
+    println( io, mv.format_bc( "the title", bc, mv.MV_HTML()))
 
     println( io, "</body></html>")
 end
@@ -82,6 +83,8 @@ open( "tmp/$(filename).typ", "w") do io
     println( io, mv.labelled_frame_to_table( cf, mv.MV_TYPST(); prec=0))
     println( io, mv.format_overall_cost( incs1, incs2 , mv.MV_TYPST()))
     println( io, mv.labelled_frame_to_table( dc , mv.MV_TYPST(); prec=0))
+    println( io, mv.format_bc( "the title", bc, mv.MV_TYPST()))
+
 end
 
 typst_command = `typst compile tmp/$(filename).typ`

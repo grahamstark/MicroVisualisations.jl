@@ -356,7 +356,7 @@ function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame ) :: String
     return costs
 end
 
-function format_bc( title::String, bc::DataFrame, ::MV_HTML )
+function format_bc( title::String, bc::DataFrame, ::MV_HTML )::String
 
     function fm(v, r,c)
         return if c in [1,7]
@@ -381,8 +381,9 @@ function format_bc( title::String, bc::DataFrame, ::MV_HTML )
 
     bc.char_labels = BCCalcs.get_char_labels(size(bc)[1])
     bc[!,:simplelabel_hide] = add_hidden_to_label.( bc.simplelabel )
+    io = IOBuffer()
     pretty_table(
-        String,
+        io,
         bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction,:simplelabel_hide]];
         backend = :html,
         formatters=[fm],
@@ -391,6 +392,7 @@ function format_bc( title::String, bc::DataFrame, ::MV_HTML )
         column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"],
         alignment=[fill(:r,6)...,:l],
         title = title )
+    return String(take!(io))
 end
 
 

@@ -316,6 +316,7 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
         alignment=[:l,fill(:r,11)...],
         highlighters = [ht],
         title = title,
+        style=typst_std_table_style("10pt"),
         table_format=TYPST_TABLE_FORMAT,
         column_labels=[[
             "Taxable Income",
@@ -377,7 +378,7 @@ end
 
 
 
-function format_bc( title::String, bc::DataFrame, ::MV_TYPST )
+function format_bc( title::String, bc::DataFrame, ::MV_TYPST )::String
 
     function fm(v, r,c)
         return if c in [1,7]
@@ -395,16 +396,16 @@ function format_bc( title::String, bc::DataFrame, ::MV_TYPST )
     end
 
     bc.char_labels = BCCalcs.get_char_labels(size(bc)[1])
+    io = IOBuffer()
     pretty_table(
-        String,
+        io,
         bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction]];
         backend = :typst,
         formatters=[fm],
-        allow_html_in_cells=true,
-        table_class="table table-sm table-striped table-responsive",
+        style=typst_std_table_style("8pt"),
         table_format=TYPST_TABLE_FORMAT,
-        column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"],
-        alignment=[fill(:r,6)...,:l],
+        column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By"],
+        alignment=[fill(:r,6)...],
         title = title )
+    return String(take!(io))
 end
-
