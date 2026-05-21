@@ -401,13 +401,13 @@ function format_bc( title::String, bc::DataFrame, ::MV_TYPST )::String
     io = IOBuffer()
     pretty_table(
         io,
-        bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction]];
+        bc[!,[:char_labels,:gross,:net,:mr]];
         backend = :typst,
         formatters=[fm],
         style=typst_std_table_style("8pt"),
         table_format=TYPST_TABLE_FORMAT,
-        column_labels = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By"],
-        alignment=[fill(:r,6)...],
+        column_labels = ["ID", "Earnings £pw","Net Income £pw", "METR"],
+        alignment=fill(:r,4),
         title = title )
     return String(take!(io))
 end

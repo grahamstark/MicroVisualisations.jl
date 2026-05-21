@@ -5,7 +5,8 @@ using CairoMakie
 using DataFrames,CSV, Dates
 
 using BudgetConstraints
-using MicroVisualisations
+
+import MicroVisualisations as mv
 
 using ScottishTaxBenefitModel
 

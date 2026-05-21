@@ -328,7 +328,7 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_HTML )
         return String(take!(io))
 end
 
-function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame ) :: String
+function format_overall_cost( incs1:: DataFrame, incs2:: DataFrame, ::MV_HTML ) :: String
     n1 = incs1[1,:net_cost]
     n2 = incs2[1,:net_cost]
     # add in employer's NI

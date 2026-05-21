@@ -169,20 +169,20 @@ function format_and_class_full(; pre::Number, post::Number, up_is_good :: Bool, 
     else
         -pct_change
     end
-    glclass = if dpc > 20.0
-        "text-success"
+    glcolours= if dpc > 20.0
+        ["text-success", "#"*hex(GOOD_COLOUR)]
     elseif dpc > 10.0
-        "text-success"
+        ["text-success", "#"*hex(GOOD_COLOUR)]
     elseif dpc > 0.01
-        "text-success"
+        ["text-success", "#"*hex(GOOD_COLOUR)]
     elseif dpc < -20.0
-        "text-danger"
+        ["text-danger", "#"*hex(BAD_COLOUR)]
     elseif dpc < -10
-        "text-danger"
+        ["text-danger", "#"*hex(BAD_COLOUR)]
     elseif dpc < -0.01
-        "text-danger"
+        ["text-danger", "#"*hex(BAD_COLOUR)]
     else
-        "text-body"
+        ["text-body", "#"*hex(NEUTRAL_COLOUR)]
     end
     return (;
                 delta,

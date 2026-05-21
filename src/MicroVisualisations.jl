@@ -57,20 +57,24 @@ export
     AVAILABLE_GRAPHS,
     AVAILABLE_TABLES
 
-include( "standard-formats.jl")
 include( "misc-constants.jl")
-include( "gen-functions.jl")
 include( "tables-common.jl")
+include( "standard-formats.jl")
+include( "gen-functions.jl")
+
 include( "summary-dataframe-conversions.jl")
 include( "html-tables.jl")
 include( "typst-tables.jl")
+
 include( "table-generation.jl")
-# TODO
-# include( "examples.jl")
-include( "graphics.jl")
+include( "graphics-generation.jl")
+include( "other-formats-generation.jl")
 
 function __init__()
     CairoMakie.activate!(type = "svg")
 end 
+
+# TODO
+# include( "examples.jl")
 
 end
