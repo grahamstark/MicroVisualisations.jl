@@ -1,7 +1,6 @@
 const AVAILABLE_OTHER_ITEMS = OrderedDict([
     :headline_numbers => "A summary of headline numbers."])
 
-
 function format_headline_numbers( headlines :: NamedTuple )::NamedTuple
     return (;
         gainers = gf0(headlines.gainers),

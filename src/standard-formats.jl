@@ -193,7 +193,7 @@ function format_and_class_full(; pre::Number, post::Number, up_is_good :: Bool, 
                 unsigned_pct_change_str,
                 change_str,
                 unsigned_change_str,
-                glclass,
+                glcolours,
                 arrow
            )
 

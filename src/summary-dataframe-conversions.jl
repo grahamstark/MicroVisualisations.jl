@@ -63,9 +63,10 @@ function costs_dataframe(  incs1 :: DataFrame, incs2 :: DataFrame ) :: DataFrame
 end
 
 function mr_dataframe( mr1::Histogram, mr2::Histogram, mean1::Real, mean2 :: Real, median1::Real, median2 :: Real ) :: DataFrame
-    println( "mr1.weights=$(mr1.weights) mean1=$mean1")
+    println( "mr1.weights=$(mr1.weights) mean1=$mean1 METR_TABLE_BREAK_LABELS=$(METR_TABLE_BREAK_LABELS)")
     change = mr2.weights - mr1.weights
-    df = DataFrame( Item=METR_TABLE_BREAK_LABELS, Before=mr1.weights, After=mr2.weights, Change=change)
+    # labels have a total we don't need
+    df = DataFrame( Item=METR_TABLE_BREAK_LABELS[1:end-1], Before=mr1.weights, After=mr2.weights, Change=change)
     mchange = mean2 - mean1
     medchange = median2 - median1
     push!( df, (Item="Mean METR", Before=mean1, After=mean2, Change=mchange ))

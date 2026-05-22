@@ -45,14 +45,14 @@ include( "runner-functions.jl")
     </head>
     <body>
 """)
-    headlinesjs = format_headline_numbers( summary.headline_figures[2] )
+    headlinesjs = mv.format_headline_numbers( summary.headline_figures[2] )
     println(io, headlinesjs )
 
     hh = FRSHouseholdGetter.get_household(100)
     # hh = examples[3]
     wage = 20.0
     bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
-    sg = draw_summary_graphs( settings, results, summary )
+    sg = mv.draw_summary_graphs( settings, results, summary )
     save( joinpath( tmpdir, "summary_graphs.svg"), sg )
     println( io, "<img src='summary_graphs.svg'/>");
 
@@ -65,7 +65,7 @@ include( "runner-functions.jl")
     save( joinpath( tmpdir, "taxable_graph.svg"), tg )
     println( io, "<img src='taxable_graph.svg'/>");
 
-    hbt = mv.draw_hbai_thumbnail( results, summary; title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=POST_COLOURS)
+    hbt = mv.draw_hbai_thumbnail( results, summary; title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=mv.POST_COLOURS)
     save( joinpath( tmpdir, "hbai-thumbnail.svg"), hbt )
     println( io, "<img src='hbai-thumbnail.svg'/>");
 
@@ -102,20 +102,22 @@ include( "runner-functions.jl")
 
     println( io, "<h2>Costs Headlines</h2>\n", mv.format_overall_cost(
         summary.income_summary[1],
-        summary.income_summary[2]), html )
+        summary.income_summary[2],
+        html ) )
     println( io, "<h2>Costs Summary</h2>\n", mv.format_costs_table(
         summary.income_summary[1],
         summary.income_summary[2],
         html ))
-    println( io, "<h2>Budget Constraint 1</h2>\n", mv.format_bc_df( "BC 1", bc1, html ))
-    println( io, "<h2>Budget Constraint 2</h2>\n", mv.format_bc_df( "BC 2", bc2, html ))
-    println( io, "<h2>Gainlose example</h2>\n", mv.format_gainlose("By Household Size",summary.gain_lose[2].hhtype_gl, html ))
+    println( io, "<h2>Budget Constraint 1</h2>\n", mv.format_bc( "BC 1", bc1, html ))
+    println( io, "<h2>Budget Constraint 2</h2>\n", mv.format_bc( "BC 2", bc2, html ))
+    println( io, "<h2>Gainlose example</h2>\n", mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, html ))
     println( io, "<h2>SFC Behavour Correction</h2>\n", mv.format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], html))
     println( io, "<h2>Gain/Lose Summary</h2>\n", mv.format_gain_lose_table_v2( summary.gain_lose[2], html ))
     # TODO println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
     println( io, "<h2>Inequality Summary</h2>\n", mv.format_ineq_table(
         summary.inequality[1],
-        summary.inequality[2]), html )
+        summary.inequality[2],
+        html))
     println( io, "<h2>METRs Table</h2>\n", mv.format_mr_table( summary.metrs[1], summary.metrs[2], html ))
     # TODO println( io, format_pers_inc_table( results ))
     println( io, "<h2>Poverty Table</h2>\n", mv.format_pov_table(
@@ -124,7 +126,7 @@ include( "runner-functions.jl")
         summary.child_poverty[1],
         summary.child_poverty[2],
         html ))
-    println( io, "<h2>Poverty Transitions</h2>\n", format_pov_transitions( summary.povtrans_matrix[2], html ))
+    println( io, "<h2>Poverty Transitions</h2>\n", mv.format_crosstab( summary.povtrans_matrix_df[2], html ))
     println( io, "<h2>Run Settings</h2>\n", mv.format_run_settings_summary( settings, html ))
     println( io, "</body></html>")
     println( io, "<h2>Main Costs</h2>\n", mv.costs_frame_to_table(
@@ -139,7 +141,7 @@ include( "runner-functions.jl")
     typsts = mv.construct_tables( settings, results, summary, mv.MV_TYPST() )
     @show images
     @show htmls
-    @sgow typsts
+    @show typsts
     summary_strings = mv.format_headline_numbers( summary.headline_figures[2] )
     @show summary_strings
 
