@@ -134,13 +134,13 @@ include( "runner-functions.jl")
 
     close(io)
 
-    images = construct_images( settings, results, summary, sys )
-    htmls = construct_html( settings, results, summary, html )
-    typsts = construct_html( settings, results, summary, mv.MV_TYPST() )
+    images = mv.construct_images( settings, results, summary, sys )
+    htmls = mv.construct_tables( settings, results, summary, html )
+    typsts = mv.construct_tables( settings, results, summary, mv.MV_TYPST() )
     @show images
     @show htmls
     @sgow typsts
-    summary_strings = format_headline_numbers( summary.headline_figures[2] )
+    summary_strings = mv.format_headline_numbers( summary.headline_figures[2] )
     @show summary_strings
 
     open( joinpath( tmpdir, "main-output.typ"), "w") do io
