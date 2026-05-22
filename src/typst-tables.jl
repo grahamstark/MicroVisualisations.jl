@@ -316,7 +316,7 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
     pretty_table(
         io,
         sf[!,1:end];
-        backend = :markdown,
+        backend = :typst,
         formatters=[fm3],
         alignment=[:l,fill(:r,11)...],
         highlighters = [ht],

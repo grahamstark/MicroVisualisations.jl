@@ -27,6 +27,17 @@ function format_ineq_table(
         up_is_good=up_is_good )
 end
 
+function format_pov_transitions( df :: DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
+    dfm = fixup_transitions_matrix( df )
+    return format_crosstab(dfm, format )
+end
+
+function format_mr_transitions( df :: DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
+    dfm = reverse_crosstab( df ) # bad -> good for MRs
+    dfm = fixup_transitions_matrix( df )
+    return format_crosstab(dfm, format )
+end
+
 function format_pov_table(
     pov1 :: PovertyMeasures,
     pov2 :: PovertyMeasures,
@@ -82,7 +93,13 @@ function run_settings_to_df( settings::Settings)::DataFrame
     return df
 end
 
+function format_run_settings_summary( settings :: Settings, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
+    return labelled_frame_to_table(run_settings_to_df( settings ), format )
+end
 
+function format_detailed_costs( incs1::DataFrame, incs2::DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
+    return labelled_frame_to_table( detailed_cost_dataframe( incs1, incs2 ), format )
+end
 
 const AVAILABLE_TABLES = OrderedDict([
     :overall_cost_table => "format_overall_cost(summary.income_summary[1],summary.income_summary[2])",
@@ -115,11 +132,11 @@ function construct_tables( settings::Settings, results::NamedTuple, summary::Nam
             summary.income_summary[1],
             summary.income_summary[2],
             format ),
-        hhtype_gl = format_gainlose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
-        ten_gl = format_gainlose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
-        dec_gl = format_gainlose("By Decile",summary.gain_lose[2].dec_gl, format ),
-        children_gl = format_gainlose("By Numbers of Children",summary.gain_lose[2].children_gl, format ),
-        reg_gl = format_gainlose("By Region",summary.gain_lose[2].reg_gl, format ),
+        hhtype_gl = format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
+        ten_gl = format_gain_lose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
+        dec_gl = format_gain_lose("By Decile",summary.gain_lose[2].dec_gl, format ),
+        children_gl = format_gain_lose("By Numbers of Children",summary.gain_lose[2].children_gl, format ),
+        reg_gl = format_gain_lose("By Region",summary.gain_lose[2].reg_gl, format ),
         sfc = format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], format), # x
         gain_lose_summary = format_gain_lose_table_v2( summary.gain_lose[2], format ), # x
         # println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
@@ -128,18 +145,18 @@ function construct_tables( settings::Settings, results::NamedTuple, summary::Nam
             summary.inequality[2],
             format),
         metrs_table = format_mr_table( summary.metrs[1], summary.metrs[2], format ),
-        metrs_transitions = format_crosstab( summary.metrs[2].transmat_df, format ), # x
+        metrs_transitions = format_mr_transitions( summary.metrs[2].transmat_df, format ), # x
         poverty_summary = format_pov_table( summary.poverty[1], # x
             summary.poverty[2],
             summary.child_poverty[1],
             summary.child_poverty[2],
             format),
-        poverty_transitions = format_crosstab( summary.povtrans_matrix_df[2], format), # x
+        poverty_transitions = format_pov_transitions( summary.povtrans_matrix_df[2], format), # x
 
-        run_settings_summary = labelled_frame_to_table(run_settings_to_df( settings ), format ), # x
-        detailed_costs = labelled_frame_to_table(detailed_cost_dataframe( # x
+        run_settings_summary = format_run_settings_summary( settings, format ), # x
+        detailed_costs = format_detailed_costs( # x
                 summary.income_summary[1],
                 summary.income_summary[2],
-                format))
+                format)
         )
 end

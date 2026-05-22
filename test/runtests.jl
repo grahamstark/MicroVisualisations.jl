@@ -25,117 +25,22 @@ using .STBParameters
 using .Utils
 
 include( "runner-functions.jl")
+include( "generation-functions.jl")
+# save your tests here.
+tmpdir = tempdir()
+summary, results, settings, sys = do_dummy_run()
+hh = FRSHouseholdGetter.get_household(100)
+# hh = examples[3]
+wage = 20.0
+bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
 
-@testset "MicroVisualisations.jl" begin
-    # save your tests here.
-    tmpdir = tempdir()
-    html = mv.MV_HTML()
-    summary, results, settings, sys = do_dummy_run()
-    io = open( joinpath( tmpdir, "main-output.html"), "w")
-    println(io,
-""""
-    <html>
-    <head>
-        <link rel="icon" href="https://triplepc.virtual-worlds.scot/images/favicon.png">
-        <link rel="stylesheet" href="https://triplepc.virtual-worlds.scot/css/bisite-bootstrap.css"/>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css"/>
-        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.js'></script>
-        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.periodicalupdater.js'></script>
-        <script type='text/javascript' src='https://triplepc.virtual-worlds.scot/js/jquery.validate.js'></script>
-    </head>
-    <body>
-""")
-    headlinesjs = mv.format_headline_numbers( summary.headline_figures[2] )
-    println(io, headlinesjs )
+@testset "generate all" begin
+    generate_images( tmpdir, summary, results, settings, sys, bc1, bc2 )
+    generate_html( tmpdir, summary, results, settings, sys, bc1, bc2 )
+    generate_typst( tmpdir, summary, results, settings, sys, bc1, bc2 )
+end
 
-    hh = FRSHouseholdGetter.get_household(100)
-    # hh = examples[3]
-    wage = 20.0
-    bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
-    sg = mv.draw_summary_graphs( settings, results, summary )
-    save( joinpath( tmpdir, "summary_graphs.svg"), sg )
-    println( io, "<img src='summary_graphs.svg'/>");
-
-
-    sg2 = mv.draw_summary_graphs_v2( settings, results, summary )
-    save( joinpath( tmpdir, "summary_graphs-v2.svg"), sg2 )
-    println( io, "<img src='summary_graphs-v2.svg'/>");
-
-    tg = mv.draw_taxable_graph( settings, results, summary, [sys[1],sys[2]] )
-    save( joinpath( tmpdir, "taxable_graph.svg"), tg )
-    println( io, "<img src='taxable_graph.svg'/>");
-
-    hbt = mv.draw_hbai_thumbnail( results, summary; title="HBAI Title", sysno=2, measure=Symbol(settings.ineq_income_measure), colours=mv.POST_COLOURS)
-    save( joinpath( tmpdir, "hbai-thumbnail.svg"), hbt )
-    println( io, "<img src='hbai-thumbnail.svg'/>");
-
-    hbc = mv.draw_hbai_graphs( settings, results, summary )
-    save( joinpath( tmpdir, "hbai.svg"), hbc )
-    println( io, "<img src='hbai.svg'/>");
-
-    metg = mv.draw_metrs( settings, results )
-    save( joinpath( tmpdir, "metg.svg"), metg )
-    println( io, "<img src='metg.svg'/>");
-
-    metg2 = mv.draw_metrs2( settings, results )
-    save( joinpath( tmpdir, "metg2.svg"), metg2 )
-    println( io, "<img src='metg2.svg'/>");
-
-    for tn in [false,true]
-        tns = tn ? "-thumbnail" : ""
-        bcp = mv.draw_bc( settings, "BC Test", bc1, bc2, thumbnail=tn )
-        save( joinpath( tmpdir, "bcp$(tns).svg"), bcp )
-        println( io, "<img src='bcp$(tns).svg'/>");
-
-        lc = mv.draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=tn )
-        save( joinpath( tmpdir, "lorenz-curve$(tns).svg"), lc )
-        println( io, "<img src='lorenz-curve$(tns).svg'/>");
-
-        dc = mv.draw_deciles_barplot( summary; row=1, col=1, thumbnail=tn )
-        save( joinpath( tmpdir, "deciles-barplot$(tns).svg"), dc )
-        println( io, "<img src='deciles-barplot$(tns).svg'/>");
-
-        mh = mv.draw_metrs_hist( results; thumbnail=tn)
-        save( joinpath( tmpdir, "metrs-hist$(tns).svg"), mh )
-        println( io, "<img src='metrs-hist$(tns).svg'/>");
-    end
-
-    println( io, "<h2>Costs Headlines</h2>\n", mv.format_overall_cost(
-        summary.income_summary[1],
-        summary.income_summary[2],
-        html ) )
-    println( io, "<h2>Costs Summary</h2>\n", mv.format_costs_table(
-        summary.income_summary[1],
-        summary.income_summary[2],
-        html ))
-    println( io, "<h2>Budget Constraint 1</h2>\n", mv.format_bc( "BC 1", bc1, html ))
-    println( io, "<h2>Budget Constraint 2</h2>\n", mv.format_bc( "BC 2", bc2, html ))
-    println( io, "<h2>Gainlose example</h2>\n", mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, html ))
-    println( io, "<h2>SFC Behavour Correction</h2>\n", mv.format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], html))
-    println( io, "<h2>Gain/Lose Summary</h2>\n", mv.format_gain_lose_table_v2( summary.gain_lose[2], html ))
-    # TODO println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
-    println( io, "<h2>Inequality Summary</h2>\n", mv.format_ineq_table(
-        summary.inequality[1],
-        summary.inequality[2],
-        html))
-    println( io, "<h2>METRs Table</h2>\n", mv.format_mr_table( summary.metrs[1], summary.metrs[2], html ))
-    # TODO println( io, format_pers_inc_table( results ))
-    println( io, "<h2>Poverty Table</h2>\n", mv.format_pov_table(
-        summary.poverty[1],
-        summary.poverty[2],
-        summary.child_poverty[1],
-        summary.child_poverty[2],
-        html ))
-    println( io, "<h2>Poverty Transitions</h2>\n", mv.format_crosstab( summary.povtrans_matrix_df[2], html ))
-    println( io, "<h2>Run Settings</h2>\n", mv.format_run_settings_summary( settings, html ))
-    println( io, "</body></html>")
-    println( io, "<h2>Main Costs</h2>\n", mv.costs_frame_to_table(
-            detailed_cost_dataframe(
-                summary.income_summary[1],
-                summary.income_summary[2] ), html ))
-
-    close(io)
-
+#=
     images = mv.construct_images( settings, results, summary, sys )
     htmls = mv.construct_tables( settings, results, summary, html )
     typsts = mv.construct_tables( settings, results, summary, mv.MV_TYPST() )
@@ -146,8 +51,8 @@ include( "runner-functions.jl")
     @show summary_strings
 
     open( joinpath( tmpdir, "main-output.typ"), "w") do io
-
-
+    headlinesjs = mv.format_headline_numbers( summary.headline_figures[2] )
+    println(io, headlinesjs )
     end
 
-end
+=#
