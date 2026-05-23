@@ -114,6 +114,10 @@ function generate_typst( tmpdir, summary, results, settings, sys, bc1, bc2 )
   // bib: bibliography("main.bib"),
 )
 
+#let table_fonts = ("BellCentennial LT Address","Arial Narrow")
+#show figure.caption: set text( size:6pt, fill:rgb("#444466"))
+#show table.cell: set text( size:6pt, font:table_fonts )
+
 #sidenote(dy: 1.5em, numbered: false)[#outline(depth: 2)]
 
 = Main Results <sec:main-results>
@@ -156,13 +160,33 @@ $bcc
 #sidenote[
     $bcc
 ]
+
+
+#wideblock[
+    #figure(caption: "A table of MRs")[
+        $(mv.format_mr_transitions( summary.metrs[2].transmat_df, typst ))
+    ]
+]
+
+// #wideblock[
+#figure( caption: "Gainers & Losers by Household Tenure (counts of people)")[
+    $(mv.format_gain_lose("By Tenure",summary.gain_lose[2].ten_gl, typst  ))]
+#figure( caption: "Gainers & Losers by Number of People in the Household (counts of people)")[
+    $(mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, typst  ))]
+#figure( caption: "Gainers & Losers by Income Decile (counts of people)")[
+    $(mv.format_gain_lose("By Decile",summary.gain_lose[2].dec_gl, typst  ))]
+#figure( caption: "Gainers & Losers by Number of Children in the Household (counts of all people in the household)")[
+    $(mv.format_gain_lose("By Number of Children",summary.gain_lose[2].children_gl, typst  ))]
+// ]
 """ )
 
 
+
     #=
-    println( io, "<h2>Gainlose example</h2>\n", mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, html ))
+    println( io, "<h2>Gainlose example</h2>\n", )
     println( io, "<h2>SFC Behavour Correction</h2>\n", mv.format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], html))
-    println( io, "<h2>Gain/Lose Summary</h2>\n", mv.format_gain_lose_table_v2( summary.gain_lose[2], html ))
+    println( io, "<h2>Gain/Lose Summary</h2>\n", mv.format_gain_lose_t#figure( caption: "Gainers & Losers by Household Size")[
+    $(mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, typst  ))]ldreable_v2( summary.gain_lose[2], html ))
     # TODO println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
     println( io, "<h2>Inequality Summary</h2>\n", mv.format_ineq_table(
         summary.inequality[1],

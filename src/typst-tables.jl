@@ -13,7 +13,8 @@ const TYPST_NO_BORDERS = TypstTableBorders(
 const TYPST_TABLE_FORMAT = TypstTableFormat(borders=TYPST_NO_BORDERS, vertical_lines_at_data_columns= :none)
 
 function typst_std_table_style( pts )
-    return TypstTableStyle( table=["text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts, "text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
+    # "text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts,
+    return TypstTableStyle( table=["text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
 end
 
 # TODO format_hh_summary( hh )
@@ -150,25 +151,25 @@ function format_gain_lose( title::String, gl :: DataFrame, ::MV_TYPST; cell_prec
 
     pts, labwidth = if ncols < 7
         "9pt",
-        "20%"
-        elseif ncols < 12
+        "16%"
+    elseif ncols < 12
         "7pt",
-        "15%"
+        "12%"
     else
         "5pt",
-        "12%"
+        "10%"
     end
 
     gl[!,1] = Utils.pretty.(gl[!,1]) # labels on RHS
     io = IOBuffer()
     pretty_table(
-        io, gl;
+        io, gl[!,1:end-1];
         backend = :typst,
         formatters=[fm_gl],
         data_column_widths = [1=>"25%"],
         highlighters = [hgainlose],
-        column_labels=gl_rename_cols( names(gl)),
-        alignment=[:l,fill(:r,ncols-1)...],
+        column_labels=gl_rename_cols( names(gl)[1:end-1]),
+        alignment=[:l,fill(:r,ncols-2)...],
         table_format=TYPST_TABLE_FORMAT,
         style=typst_std_table_style( pts ),
         title = title )
