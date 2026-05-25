@@ -99,6 +99,8 @@ end
 function generate_typst( tmpdir, summary, results, settings, sys, bc1, bc2 )
     typst = mv.MV_TYPST()
     dt = Dates.format(now(),"e d/u/Y, H:M")
+    bcc1 = mv.format_bc( "BC 1", bc1, typst )
+    bcc2 = mv.format_bc( "BC 2", bc2, typst )
     open( joinpath( tmpdir, "main-output.typ"), "w") do io
 #import "@preview/toffee-tufte:0.1.1": *
     println(io, """
@@ -117,50 +119,57 @@ function generate_typst( tmpdir, summary, results, settings, sys, bc1, bc2 )
 #let table_fonts = ("BellCentennial LT Address","Arial Narrow")
 #show figure.caption: set text( size:6pt, fill:rgb("#444466"))
 #show table.cell: set text( size:6pt, font:table_fonts )
+#let grey = rgb("#dddddd") // bug in prettytables 2nd header
 
 #sidenote(dy: 1.5em, numbered: false)[#outline(depth: 2)]
 
 = Main Results <sec:main-results>
 == Marginal Rates <sec:mrs>
-""" )
+== Budget Constraints")
 
+#figure(
+    image("bcp.svg"),
+    caption: [This is a Budget Constraint Normal version.])
 
-    println( io, "== Budget Constraints")
-    println( io, """
-
-        #figure(
-                image("bcp.svg"),
-                caption: [This is a Budget Constraint Normal version.])
-
-        #wideblock[
-            #figure(
-                image("bcp.svg"),
-                caption: [This is a Budget Constraint Wide version.]
-            )]
-
-         #sidenote[
-            #figure(
-                image("bcp.svg"),
-                caption: [This is a Budget Constraint Sidenote version.]
-            )]
-
-    """)
-    bcc = mv.format_bc( "BC 2", bc2, typst )
-    println( io,
-"""
-
-$bcc
+#pagebreak(weak:true)
+#sidenote[
+    #figure(
+        image("bcp.svg"),
+        caption: [This is a Budget Constraint Sidenote version.]
+        )]
+#grid(
+    columns: (50%, 50%),
+    grid.cell()[$(bcc1)],
+    grid.cell()[$(bcc2)])
 
 #wideblock[
     #figure(caption:"A caption")[
-    $(bcc)
+    $(bcc1)
     ]
 ]
 
-#sidenote[
-    $bcc
-]
+#figure(
+  image("summary_graphs.svg"))
 
+#figure(
+    image("taxable_graph.svg"),
+    caption: "Taxable Incomes")
+
+#figure(
+    image("hbai.svg"),
+    caption: "Disposable Incomes")
+
+#figure(image( "metg.svg"),caption:"MRs")
+
+#figure(image( "lorenz-curve.svg"), caption:"Lorenz Curves")
+
+#figure( image("deciles-barplot.svg"), caption:"Deciles")
+
+#figure( image("metrs-hist.svg"), caption:"Disposable Incomes")
+
+#sidenote[
+    $bcc2
+]
 
 #wideblock[
     #figure(caption: "A table of MRs")[
@@ -168,43 +177,61 @@ $bcc
     ]
 ]
 
-// #wideblock[
+== Gainers and Losers
+
 #figure( caption: "Gainers & Losers by Household Tenure (counts of people)")[
     $(mv.format_gain_lose("By Tenure",summary.gain_lose[2].ten_gl, typst  ))]
+
 #figure( caption: "Gainers & Losers by Number of People in the Household (counts of people)")[
     $(mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, typst  ))]
+
 #figure( caption: "Gainers & Losers by Income Decile (counts of people)")[
     $(mv.format_gain_lose("By Decile",summary.gain_lose[2].dec_gl, typst  ))]
+
 #figure( caption: "Gainers & Losers by Number of Children in the Household (counts of all people in the household)")[
     $(mv.format_gain_lose("By Number of Children",summary.gain_lose[2].children_gl, typst  ))]
-// ]
-""" )
 
+== SFC Behavour Correction
 
+$(mv.format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], typst ))
 
+== Inequality Summary
+
+$(mv.format_ineq_table(
+    summary.inequality[1],
+    summary.inequality[2],
+    typst))
+
+== Poverty
+=== Summary
+$(mv.format_pov_table(
+    summary.poverty[1],
+    summary.poverty[2],
+    summary.child_poverty[1],
+    summary.child_poverty[2],
+    typst ))
+
+=== Transitions
+
+$(mv.format_pov_transitions( summary.povtrans_matrix_df[2], typst ))
+
+""")
     #=
-    println( io, "<h2>Gainlose example</h2>\n", )
-    println( io, "<h2>SFC Behavour Correction</h2>\n", mv.format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], html))
-    println( io, "<h2>Gain/Lose Summary</h2>\n", mv.format_gain_lose_t#figure( caption: "Gainers & Losers by Household Size")[
-    $(mv.format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, typst  ))]ldreable_v2( summary.gain_lose[2], html ))
     # TODO println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
-    println( io, "<h2>Inequality Summary</h2>\n", mv.format_ineq_table(
-        summary.inequality[1],
-        summary.inequality[2],
-        html))
+    println( io, "
     println( io, "<h2>METRs Table</h2>\n", mv.format_mr_table( summary.metrs[1], summary.metrs[2], html ))
     # TODO println( io, format_pers_inc_table( results ))
-    println( io, "<h2>Poverty Table</h2>\n", mv.format_pov_table(
-        summary.poverty[1],
-        summary.poverty[2],
-        summary.child_poverty[1],
-        summary.child_poverty[2],
-        html ))
+    println( io,
     println( io, "<h2>Poverty Transitions</h2>\n", mv.format_pov_transitions( summary.povtrans_matrix_df[2], html ))
     println( io, "<h2>MR Transitions</h2>\n", mv.format_mr_transitions( summary.metrs[2].transmat_df, html ))
     println( io, "<h2>Run Settings</h2>\n", mv.format_run_settings_summary( settings, html ))
     println( io, "</body></html>")
-    println( io, "<h2>Main Costs</h2>\n", mv.format_detailed_costs(
+    println( io, "<"<h2>Poverty Table</h2>\n", mv.format_pov_table(
+    summary.poverty[1],
+    summary.poverty[2],
+    summary.child_poverty[1],
+    summary.child_poverty[2],
+    html ))h2>Main Costs</h2>\n", mv.format_detailed_costs(
     =#
 
 

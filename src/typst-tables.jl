@@ -293,15 +293,6 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
     """
     function f_gainlose( h, data, r, c )
         colour = "black"
-        if c >= 7 # av, pct cols at end
-            colour = if data[r,c] < -0.1
-                "darkred"
-                elseif data[r,c] > 0.1
-                "darkgreen"
-            else
-                "black"
-            end
-        end
         return ["text-fill" => colour ]
         # HtmlDecoration( color=colour )
     end
@@ -310,7 +301,7 @@ function format_sfc( title::String, sf :: DataFrame, ::MV_TYPST )
     format cols at end green for good, red for bad.
     """
     h7 = TypstHighlighter( (data, r, c)->(c >= 7), f_gainlose )
-    ht = TypstHighlighter( (data, r, c)->(r >= 7), ["text-style"=>"bold", "text-fill"=>"black", "fill"=>rgbstr( BG_NEUTRAL)] )
+    ht = TypstHighlighter( (data, r, c)->(r >= 7), ["text-weight"=>"bold", "text-fill"=>"black", "fill"=>rgbstr( BG_NEUTRAL)] )
     sf[!,1] = pretty.(sf[!,1]) # labels on RHS
 
     io = IOBuffer()
