@@ -750,3 +750,12 @@ function construct_images( settings::Settings, results::NamedTuple, summary::Nam
         metrs2 = draw_metrs2( settings, results ),
         metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
 end
+
+function dump_images( dir::String, figs :: NamedTuple )
+    for p in pairs( figs )
+        open(joinpath( dir, p[1]*".svg")) do io
+            println( io, println(p[2]))
+        end
+    end
+end
+
