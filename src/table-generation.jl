@@ -162,16 +162,10 @@ function construct_tables( settings::Settings, results::NamedTuple, summary::Nam
 end
 
 function dump_tables( dir::String, tabs :: NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST})
-    ext = if format == MV_TYPST
-        "typ"
-    elseif format == MV_HTML
-        "html"
-    elseif format == MV_MARKDOWN
-        "md"
-    end
-    for p in pairs( tabs )
-        open(joinpath( dir, p[1]*".$(ext)")) do io
-            println( io, println(p[2]))
+    ext = to_ext( format )
+    for (k,v) in pairs( tabs )
+        open(joinpath( dir, k*".$(ext)")) do io
+            println( io, v )
         end
     end
 end

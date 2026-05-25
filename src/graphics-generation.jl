@@ -742,7 +742,7 @@ function construct_images( settings::Settings, results::NamedTuple, summary::Nam
         taxable_graph = draw_taxable_graph( settings, results, summary, sys ),
         hbai = draw_hbai_graphs( settings, results, summary ),
         lorenz_curve = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
-        lorenz_curve_thumb = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
+        lorenz_curve_thumb = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=true ),
         deciles = draw_deciles_barplot( summary; thumbnail=false ),
         deciles_thumb = draw_deciles_barplot( summary; thumbnail=true ),
         metrs_hist = draw_metrs_hist( results; thumbnail=false ),
@@ -751,11 +751,10 @@ function construct_images( settings::Settings, results::NamedTuple, summary::Nam
         metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
 end
 
-function dump_images( dir::String, figs :: NamedTuple )
-    for p in pairs( figs )
-        open(joinpath( dir, p[1]*".svg")) do io
-            println( io, println(p[2]))
-        end
+function dump_images( dir::String, figs :: NamedTuple; ext="svg" )
+    for (k,v) in pairs( figs )
+        fname = joinpath( dir, k*".$(ext)"))
+        save( fname, v)
     end
 end
 
