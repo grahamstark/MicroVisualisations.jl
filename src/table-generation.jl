@@ -169,5 +169,3 @@ function dump_tables( dir::String, tabs :: NamedTuple, format::Union{MV_MARKDOWN
         end
     end
 end
-
-end
