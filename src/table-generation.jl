@@ -34,7 +34,7 @@ end
 
 function format_mr_transitions( df :: DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     dfm = reverse_crosstab( df ) # bad -> good for MRs
-    dfm = fixup_transitions_matrix( df )
+    dfm = fixup_transitions_matrix( dfm )
     return format_crosstab(dfm, format )
 end
 
@@ -81,13 +81,13 @@ function run_settings_to_df( settings::Settings)::DataFrame
     else
         ""
     end
-    push!( df, ["ScotBen version", "(string(pkgversion(ScottishTaxBenefitModel)))"] )
+    push!( df, ["ScotBen version", "$(string(pkgversion(ScottishTaxBenefitModel)))"] )
     push!( df, ["Incomes uprated to", "$(settings.to_y) q$(settings.to_q)"] )
     push!( df, ["Income Type Used for Poverty/Inequality/Decile Graphs", "$(INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure])"] )
     push!( df, ["Income Type used for Gain-Lose tables", "$(INEQ_INCOME_MEASURE_STRS[settings.ineq_income_measure])"])
     push!( df, ["Populations weighed to", "$(settings.weighting_target_year)"] )
     push!( df, ["Poverty Line", "$(POVERTY_LINE_SOURCE_STRS[settings.poverty_line_source])** $(pov_line_str)"])
-    push!( df, ["Means-Tested Benefits Phase in assumption", "(MT_ROUTING_STRS[settings.means_tested_routing])"] )
+    push!( df, ["Means-Tested Benefits Phase in assumption", "$(MT_ROUTING_STRS[settings.means_tested_routing])"] )
     push!( df, ["Disability Benefits Phase in assumption", "Scottish System 100% phased in."])
     push!( df, ["Dodgy Means-Tested Benefits takeup corrections applied", "$(settings.do_dodgy_takeup_corrections)"] );
     return df

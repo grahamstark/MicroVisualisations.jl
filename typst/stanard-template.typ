@@ -1,70 +1,34 @@
-#import "@preview/grape-suite:4.0.0": seminar-paper
+#set text(font:"Palatino Linotype")
+#set heading(numbering:"1.")
+#set page(numbering: "1 of 1")
+#let fixed(term, color: rgb(20,90,90)) = {
+  set text(color, font: "JuliaMono", size:9pt)
+  [#term]
+}
+#show heading: set text(rgb(50,50,100), font:"Gill Sans" )
+#show link: underline
+#show link: set text(blue)
 
-#show: seminar-paper.project.with(
-    title: "MS THING",
-    author: "GS",
-    email: "gs@vw" )
-
-
-#let table_fonts = ("BellCentennial LT Address","Arial Narrow")
+#let table_fonts = ("BellCentennial LT Address","Arial")
 #show figure.caption: set text( size:6pt, fill:rgb("#444466"))
-#show table.cell: set text( size:6pt, font:table_fonts )
-#let grey = rgb("#dddddd") // bug in prettytables 2nd header
+#show table. cell: set text( size:6pt, font:table_fonts )
 
-#sidenote(dy: 1.5em, numbered: false)[#outline(depth: 2)]
+= Main Results<sec:main-results>
 
-= Main Results <sec:main-results>
-== Marginal Rates <sec:mrs>
-== Budget Constraints")
-
-#figure(
-    image("bcp.svg"),
-    caption: [This is a Budget Constraint Normal version.])
-
-#pagebreak(weak:true)
-    #figure(
-        image("bcp.svg"),
-        caption: [This is a Budget Constraint Sidenote version.]
-        )]
-#grid(
-    columns: (50%, 50%),
-    grid.cell()[$(bcc1)],
-    grid.cell()[$(bcc2)])
-
-    #figure(caption:"A caption")[
-    $(bcc1)]
-]
+#include("overall_cost_table.typ")
 
 #figure(
   image( "summary_graphs.svg" ))
 
-#figure(
-    image("taxable_graph.svg"),
-    caption: "Taxable Incomes")
-
-#figure(
-    image("hbai.svg"),
-    caption: "Disposable Incomes")
-
-#figure(image( "metg.svg"),caption:"MRs")
-
-#figure(image( "lorenz-curve.svg"), caption:"Lorenz Curves")
-
-#figure( image("deciles-barplot.svg"), caption:"Deciles")
-
 #figure( image("metrs-hist.svg"), caption:"Disposable Incomes")
-
-    #figure(caption: "A table of MRs")[
-        $(mv.format_mr_transitions( summary.metrs[2].transmat_df, typst ))
-    ]
-
 
 == Costs
 
-overall_cost_table
-costs_table
+#figure( caption: "estimated costs in £m p.a 2026/7")[ #include("costs_table.typ")]
 
-== Gainers and Losers
+== Gainers and Losers<sec:gainlose>
+
+#figure( image("deciles-barplot.svg"), caption:"Deciles")
 
 #figure( caption: "Gainers & Losers: Summary (counts of people)")[#include("gain_lose_summary.typ")]
 
@@ -76,20 +40,57 @@ costs_table
 
 #figure( caption: "Gainers & Losers by Number of Children in the Household (counts of all people in the household)")[#include("dec_gl.typ")]
 
-== SFC Behavour Correction
+== Work Incentives<sec:work-incentives>
 
-#figure( caption: "SFC Thing")[#include("sfc.typ")]
+#figure(image( "metg.svg"),caption:"MRs")
 
-metrs_table
-metrs_transitions
+#figure( caption: "METRS")[
+   #include("metrs_table.typ")
+]
 
-=== Poverty
+#figure( caption: "METRS Transitions")[
+   #include("metrs_transitions.typ")
+]
 
-poverty_summary
-poverty_transitions
-run_settings_summary
+== Poverty<sec:poverty>
 
-== Inequality Summary
+#figure(
+    image("hbai.svg"),
+    caption: "Disposable Incomes")
+
+#figure( caption: "Poverty summary")[
+   #include("poverty_summary.typ")
+]
+
+#figure( caption: "Poverty Transitions, using Equivalised BHC Incomes")[
+   #include("poverty_transitions.typ")
+]
+
+== Inequality<sec:inequality>
+
+#figure(image( "lorenz-curve.svg"), caption:"Lorenz Curves")
 
 #figure( caption: "Inequality Summary")[#include( "inequality_summary.typ")]
+
+
+== Income Tax<sec:income-tax>
+
+#figure(
+    image("taxable_graph.svg"),
+    caption: "Taxable Incomes")
+
+
+#figure( caption: "SFC Behavioural Correction")[
+   #include("sfc.typ")
+]
+
+== Budget Constraints<sec:budget-constraints>
+
+#figure(
+    image("bcp.svg"),
+    caption: [This is a Budget Constraint.])
+
+== Run Settings<sec:run-settings>
+
+#figure( caption: "Key Run Assumptions ")[#include( "run_settings_summary.typ")]
 

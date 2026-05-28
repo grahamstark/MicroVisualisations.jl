@@ -14,7 +14,7 @@ const TYPST_TABLE_FORMAT = TypstTableFormat(borders=TYPST_NO_BORDERS, vertical_l
 
 function typst_std_table_style( pts )
     # "text-font"=>"Urbanist", "text-stretch"=>"75%", "text-size"=>pts,
-    return TypstTableStyle( table=["text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "grey"] )
+    return TypstTableStyle( table=["text-align"=>"horizon" ], column_label=["text-fill"=>"black", "fill" => "gray"] )
 end
 
 # TODO format_hh_summary( hh )
