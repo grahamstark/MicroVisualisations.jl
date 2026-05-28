@@ -27,32 +27,26 @@ using .Utils
 include( "runner-functions.jl")
 include( "generation-functions.jl")
 # save your tests here.
-tmpdir = tempdir()
+
 summary, results, settings, sys = do_dummy_run()
+
 hh = FRSHouseholdGetter.get_household(100)
 # hh = examples[3]
 wage = 20.0
 bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
 
 @testset "generate all" begin
-    generate_images( tmpdir, summary, results, settings, sys, bc1, bc2 )
-    generate_html( tmpdir, summary, results, settings, sys, bc1, bc2 )
-    generate_typst( tmpdir, summary, results, settings, sys, bc1, bc2 )
+    generate_images( settings.output_dir, summary, results, settings, sys, bc1, bc2 )
+    generate_html( settings.output_dir, summary, results, settings, sys, bc1, bc2 )
+    generate_typst( settings.output_dir, summary, results, settings, sys, bc1, bc2 )
 end
 
-#=
-    images = mv.construct_images( settings, results, summary, sys )
-    htmls = mv.construct_tables( settings, results, summary, html )
-    typsts = mv.construct_tables( settings, results, summary, mv.MV_TYPST() )
-    @show images
-    @show htmls
-    @show typsts
-    summary_strings = mv.format_headline_numbers( summary.headline_figures[2] )
-    @show summary_strings
-
-    open( joinpath( tmpdir, "main-output.typ"), "w") do io
-    headlinesjs = mv.format_headline_numbers( summary.headline_figures[2] )
-    println(io, headlinesjs )
-    end
-
-=#
+@testset "test_complete" begin
+    html_tabs = construct_tables( settings, results, summary, mv.MV_HTML())
+    dump_tables( settings.output_dir, html_tabs, mv.MV_HTML())
+    typst_tabs = construct_tables( settings, results, summary, mv.MV_TYPST())
+    dump_tables( settings.output_dir, typst_tabs, mv.MV_TYPST())
+    graphs = construct_images( settings, results, summary, sys )
+    dump_images( settings.output_dir, graphs; ext="svg" )
+    dump_images( settings.output_dir, graphs; ext="png" )
+end

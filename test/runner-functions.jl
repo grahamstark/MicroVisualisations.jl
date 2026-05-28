@@ -1,9 +1,12 @@
 
 
+using MicroVisualisations
+
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .RunSettings
 using .STBOutput
+using .Utils
 
 function makesummaries()
     settings =  Settings()
@@ -12,18 +15,21 @@ function makesummaries()
     sf = STBOutput.summarise_frames!( SAMPLE_OUTPUT,settings)
     return sf
 end
-const SAMPLE_OUTPUT = STBOutput.restore_frames( joinpath( pwd(), "sample_output"), 2 )
+
+const PROJECT_DIR      = joinpath(dirname(pathof(MicroVisualisations)),".." )
+const SAMPLE_OUTPUT = STBOutput.restore_frames( joinpath( PROJECT_DIR, "sample_output"), 2 )
 const SAMPLE_SUMMARIES = makesummaries()
 
 # avch       pct_change  total_transfer
 
-function do_dummy_run()
+function do_dummy_run()::Tuple
 
     function make_some_changes!( sys )
         # flat tax -
         sys.it.non_savings_basic_rate = 1
         sys.it.non_savings_rates = [0.19]
         sys.it.non_savings_thresholds = []
+        sys.it.personal_allowance = 0.0
         # UBI
         sys.ubi.abolished = false
         sys.ubi.child_amount = 20.0
@@ -35,6 +41,9 @@ function do_dummy_run()
 
     settings = Settings()
     settings.do_marginal_rates = true
+    settings.output_dir = joinpath( PROJECT_DIR, "tmp", basiccensor( settings.run_name ))
+    mkpath( settings.output_dir )
+
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     tot = 0
 
@@ -55,7 +64,8 @@ function do_dummy_run()
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
     summary = summarise_frames!( results, settings )
-    return (summary, results, settings, sys )
+
+    return summary, results, settings, sys
 end
 
 function getbc(
