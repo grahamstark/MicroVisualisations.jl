@@ -753,8 +753,7 @@ end
 
 function dump_images( dir::String, figs :: NamedTuple; ext="svg" )
     for (k,v) in pairs( figs )
-        fname = joinpath( dir, k*".$(ext)")
+        fname = joinpath( dir, "$(k).$(ext)")
         save( fname, v)
     end
 end
-

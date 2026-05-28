@@ -51,13 +51,18 @@ using ScottishTaxBenefitModel.Utils
 using ScottishTaxBenefitModel.Weighting
 
 export
-    construct_tables,
-    run_settings_to_df,
-    construct_images,
-    format_headline_numbers,
     AVAILABLE_GRAPHS,
+    AVAILABLE_OTHER_ITEMS,
     AVAILABLE_TABLES,
-    AVAILABLE_OTHER_ITEMS
+    MV_HTML,
+    MV_MARKDOWN,
+    MV_TYPST,
+    construct_images,
+    construct_tables,
+    dump_images,
+    dump_tables,
+    format_headline_numbers,
+    run_settings_to_df
 
 include( "misc-constants.jl")
 include( "tables-common.jl")

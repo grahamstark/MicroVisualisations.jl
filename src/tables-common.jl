@@ -9,9 +9,9 @@ struct MV_HTML end
 struct MV_TYPST end
 struct MV_MARKDOWN end
 const AllFormats = Union{MV_MARKDOWN,MV_HTML,MV_TYPST}
-to_ext( ::MV_HTML)=".html"
-to_ext( ::MV_TYPST)=".typ"
-to_ext( ::MV_MARKDOWN)=".md"
+to_ext( ::MV_HTML)="html"
+to_ext( ::MV_TYPST)="typ"
+to_ext( ::MV_MARKDOWN)="md"
 
 const DEFAULT_FONT = "Urbanist"
 
