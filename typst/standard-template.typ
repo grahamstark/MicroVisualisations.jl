@@ -5,7 +5,7 @@
   set text(color, font: "JuliaMono", size:9pt)
   [#term]
 }
-#show heading: set text(rgb(50,50,100), font:"Gill Sans" )
+#show heading: set text(rgb("#448899"), font:"Gill Sans" )
 #show link: underline
 #show link: set text(blue)
 
