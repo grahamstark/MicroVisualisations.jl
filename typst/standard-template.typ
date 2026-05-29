@@ -20,8 +20,6 @@
 #figure(
   image( "summary_graphs.svg" ))
 
-#figure( image("metrs-hist.svg"), caption:"Disposable Incomes")
-
 == Costs
 
 #figure( caption: "estimated costs in £m p.a 2026/7")[ #include("costs_table.typ")]
@@ -40,9 +38,14 @@
 
 #figure( caption: "Gainers & Losers by Number of Children in the Household (counts of all people in the household)")[#include("dec_gl.typ")]
 
-== Work Incentives<sec:work-incentives>
+== Work Incentives - Marginal Effective Tax Rates(METRs) <sec:work-incentives>
 
-#figure(image( "metg.svg"),caption:"MRs")
+METRs are the % of the next £1 you earn that you get to keep, after taxes are paid and means-tested benefits withdrawn. A METR of 100% means you keep none of the next £1; 0% means
+you keep all of it. Figures are for the working-age population only, though they include sick and disabled people, homemakers, students, and the unemployed.
+
+#figure(image( "metg.svg"),caption:"Marginal Effective Tax Rates (METRs).")
+
+#figure( image("metrs-hist.svg"), caption:"")
 
 #figure( caption: "METRS")[
    #include("metrs_table.typ")

@@ -27,7 +27,7 @@ function do_dummy_run()::Tuple
     function make_some_changes!( sys )
         # flat tax -
         sys.it.non_savings_basic_rate = 1
-        sys.it.non_savings_rates = [0.28]
+        sys.it.non_savings_rates = [0.30]
         sys.it.non_savings_thresholds = []
         sys.it.personal_allowance = 0.0
         # UBI
