@@ -124,40 +124,87 @@ A Named Tuple with all the formatted outputs (except the budget constraints).
 """
 function construct_tables( settings::Settings, results::NamedTuple, summary::NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::NamedTuple
     return (;
-        overall_cost_table = format_overall_cost( # x
-            summary.income_summary[1],
-            summary.income_summary[2],
-            format ),
-        costs_table = format_costs_table( # x
-            summary.income_summary[1],
-            summary.income_summary[2],
-            format ),
-        hhtype_gl = format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
-        ten_gl = format_gain_lose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
-        dec_gl = format_gain_lose("By Decile",summary.gain_lose[2].dec_gl, format ),
-        children_gl = format_gain_lose("By Numbers of Children",summary.gain_lose[2].children_gl, format ),
-        reg_gl = format_gain_lose("By Region",summary.gain_lose[2].reg_gl, format ),
-        sfc = format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], format), # x
-        gain_lose_summary = format_gain_lose_table_v2( summary.gain_lose[2], format ), # x
+        overall_cost_table = OneEntry(
+            format_overall_cost( # x
+                summary.income_summary[1],
+                summary.income_summary[2],
+                format ),
+            "One Line entry showing the net costs of your reform",
+            ["pdf", "tpst", "html"] ),
+        costs_table = OneEntry(
+            format_costs_table( # x
+                summary.income_summary[1],
+                summary.income_summary[2],
+                format ),
+            "Short Table with headline costs of your reform",
+            ["pdf", "tpst", "html"] ),
+        hhtype_gl = OneEntry(
+            format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
+            "Gain Lose Table By Household Size (counts of individuals)",
+            ["pdf", "tpst", "html"] ),
+
+        ten_gl = OneEntry(
+            format_gain_lose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
+            "Gain Lose Table By Tenure(counts of individuals)",
+            ["pdf", "tpst", "html"] ),
+        dec_gl = OneEntry(
+            format_gain_lose("By Decile",summary.gain_lose[2].dec_gl, format ),
+            "Gain Lose Table By Income Decile(counts of individuals)",
+            ["pdf", "tpst", "html"] ),
+        children_gl = OneEntry(
+            format_gain_lose("By Numbers of Children",summary.gain_lose[2].children_gl, format ),
+            "Gain Lose Table By Number of Children in the Household (counts of individuals)",
+            ["pdf", "tpst", "html"]),
+        reg_gl = OneEntry(
+            format_gain_lose("By Region",summary.gain_lose[2].reg_gl, format ),
+            "Gain Lose Table By Region (counts of individuals)",
+            ["pdf", "tpst", "html"]),
+        sfc = OneEntry(
+            format_sfc("SFC Behavioral Corrections", results.behavioural_results[2], format), # x
+            "Table describing our SFC correction",
+            ["pdf", "tpst", "html"]),
+
+        gain_lose_summary = OneEntry(
+            format_gain_lose_table_v2( summary.gain_lose[2], format ), # x
+            "Short text summary of numbers of gainers and losers",
+            ["pdf", "tpst", "html"]),
         # println( io, "<h2>Format HH Summary</h2>\n", format_hh_summary( hh ))
-        inequality_summary = format_ineq_table( # x
-            summary.inequality[1],
-            summary.inequality[2],
-            format),
-        metrs_table = format_mr_table( summary.metrs[1], summary.metrs[2], format ),
-        metrs_transitions = format_mr_transitions( summary.metrs[2].transmat_df, format ), # x
+        inequality_summary = OneEntry(
+            format_ineq_table( # x
+                summary.inequality[1],
+                summary.inequality[2],
+                format),
+            "Short textual summmary of our standard inequality measures.",
+            ["pdf", "tpst", "html"]),
+        metrs_table = OneEntry(
+            format_mr_table( summary.metrs[1], summary.metrs[2], format ),
+            "Summary table of our Marginal Rate estimates (if available)."
+            ["pdf", "tpst", "html"]),
+
+        metrs_transitions = OneEntry(
+            format_mr_transitions( summary.metrs[2].transmat_df, format ), # x
+            "Transitions table from our Marginal Rate estimates (if available)."
+            ["pdf", "tpst", "html"]),
         poverty_summary = format_pov_table( summary.poverty[1], # x
             summary.poverty[2],
             summary.child_poverty[1],
             summary.child_poverty[2],
             format),
-        poverty_transitions = format_pov_transitions( summary.povtrans_matrix_df[2], format), # x
-
-        run_settings_summary = format_run_settings_summary( settings, format ), # x
-        detailed_costs = format_detailed_costs( # x
+        poverty_transitions = OneEntry(
+            format_pov_transitions( summary.povtrans_matrix_df[2], format), # x
+            "Summary table of our Poverty estimates (if available)."
+            ["pdf", "tpst", "html"]),
+        run_settings_summary = OneEntry(
+            format_run_settings_summary( settings, format ), # x
+            "Highlights from the run settings",
+            ["pdf", "tpst", "html"]),
+        detailed_costs = OneEntry(
+            format_detailed_costs( # x
                 summary.income_summary[1],
                 summary.income_summary[2],
-                format)
+                format),
+            "Huge dump of all incomes and case counts from the run.",
+            ["pdf", "tpst", "html"])
         )
 end
 
@@ -165,7 +212,7 @@ function dump_tables( dir::String, tabs :: NamedTuple, format::Union{MV_MARKDOWN
     ext = to_ext( format )
     for (k,v) in pairs( tabs )
         open(joinpath( dir, "$(k).$(ext)"), "w") do io
-            println( io, v )
+            println( io, v.data )
         end
     end
 end

@@ -735,25 +735,61 @@ const AVAILABLE_GRAPHS = OrderedDict([
 """
 A Named Tuple with all the graphical outputs (except the budget constraints).
 """
-function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple
+function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple{String,OneEntry}
     return (;
-        summary_graphs = draw_summary_graphs( settings, results, summary ),
-        summary_graphs_v2 = draw_summary_graphs_v2( settings, results, summary ),
-        taxable_graph = draw_taxable_graph( settings, results, summary, sys ),
-        hbai = draw_hbai_graphs( settings, results, summary ),
-        lorenz_curve = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
-        lorenz_curve_thumb = draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=true ),
-        deciles = draw_deciles_barplot( summary; thumbnail=false ),
-        deciles_thumb = draw_deciles_barplot( summary; thumbnail=true ),
-        metrs_hist = draw_metrs_hist( results; thumbnail=false ),
-        metrs = draw_metrs( settings, results ),
-        metrs2 = draw_metrs2( settings, results ),
-        metrs_hist_thumb = draw_metrs_hist( results; thumbnail=true ))
+        summary_graphs = OneEntry(
+            draw_summary_graphs( settings, results, summary ),
+            "4 quadrant summary graph",
+            ["svg", "png"] ),
+        summary_graphs_v2 = OneEntry(
+            draw_summary_graphs_v2( settings, results, summary ),
+            "4 quadrant summary graph, 2nd version",
+            ["svg", "png"] ),
+        taxable_graph = OneEntry(
+            draw_taxable_graph( settings, results, summary, sys ),
+            "Graph showing taxable income in bands against marginal tax rates",
+            ["svg", "png"] ),
+        hbai = OneEntry(
+            draw_hbai_graphs( settings, results, summary ),
+            "Comparison graphs of equilvalised income in bands, similar to DWP's HBAI report graph",
+            ["svg", "png"] ),
+        lorenz_curve = OneEntry(
+            draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
+            "Pre- and Post- Lorenz Curve",
+            ["svg", "png"] ),
+        lorenz_curve_thumb = OneEntry(
+            draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=true ),
+            "Pre- and Post- Lorenz Curve (thumbnail)",
+            ["svg", "png"] ),
+        deciles = OneEntry(
+            draw_deciles_barplot( summary; thumbnail=false ),
+            "Average Gains and Losses by Eq, Income Decile",
+            ["svg", "png"] ),
+        deciles_thumb = OneEntry(
+            draw_deciles_barplot( summary; thumbnail=true ),
+            "Average Gains and Losses by Eq, Income Decile, thumbnail version",
+            ["svg", "png"] ),
+        metrs_hist =  OneEntry(
+            draw_metrs_hist( results; thumbnail=false ),
+            "Density Plot of pre- and post- Marginal Effective Tax Rates (METRs)",
+            ["svg", "png"] ),
+        metrs = OneEntry(
+            draw_metrs( settings, results ),
+            "pre- and post- Marginal Effective Tax Rates (METRs) in 2% intervals",
+            ["svg", "png"] ),
+        metrs2 = OneEntry(
+            draw_metrs2( settings, results ),
+            "pre- and post- Marginal Effective Tax Rates (METRs) in 2% intervals, 2 graph version",
+            ["svg", "png"] ),
+        metrs_hist_thumb = OneEntry(
+            draw_metrs_hist( results; thumbnail=true ),
+            "Density Plot of pre- and post- Marginal Effective Tax Rates (METRs), thumbnail version",
+            ["svg", "png"] ))
 end
 
 function dump_images( dir::String, figs :: NamedTuple; ext="svg" )
     for (k,v) in pairs( figs )
         fname = joinpath( dir, "$(k).$(ext)")
-        save( fname, v)
+        save( fname, v.data)
     end
 end

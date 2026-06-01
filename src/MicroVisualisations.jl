@@ -1,7 +1,8 @@
 module MicroVisualisations
 #=
 
-
+TODO clean up all the include fines and definctions into one source and delete unused constants.
+TODO pdfs of individual tables are messed up; add directory of outputs, add BCs.
 =#
 using Markdown
 using UUIDs
@@ -66,6 +67,12 @@ export
     run_settings_to_df
 
 const MICRO_DIR      = joinpath(dirname(pathof(MicroVisualisations)),".." )
+
+struct OneEntry
+    data
+    description :: String
+    formats :: Vector{String}
+end
 
 include( "misc-constants.jl")
 include( "tables-common.jl")
