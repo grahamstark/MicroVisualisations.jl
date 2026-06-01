@@ -80,6 +80,11 @@ include( "table-generation.jl")
 include( "graphics-generation.jl")
 include( "other-formats-generation.jl")
 
+#=
+Write everything (except BCs.. ) into a working directory, generate PDFs of the typst bits create a zipfile of everything.
+@return path to the zipfile and working directory
+TODO: pdfs of individual tables are messed up; add directory of outputs, add BCs.
+=#
 function phunpackify(
     settings::Settings,
     graphics :: NamedTuple,
