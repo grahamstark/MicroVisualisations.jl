@@ -26,7 +26,7 @@
 
 == Gainers and Losers<sec:gainlose>
 
-#figure( image("deciles-barplot.svg"), caption:"Deciles")
+#figure( image("deciles.svg"), caption:"Deciles")
 
 #figure( caption: "Gainers & Losers: Summary (counts of people)")[#include("gain_lose_summary.typ")]
 
@@ -43,9 +43,9 @@
 METRs are the % of the next £1 you earn that you get to keep, after taxes are paid and means-tested benefits withdrawn. A METR of 100% means you keep none of the next £1; 0% means
 you keep all of it. Figures are for the working-age population only, though they include sick and disabled people, homemakers, students, and the unemployed.
 
-#figure(image( "metg.svg"),caption:"Marginal Effective Tax Rates (METRs).")
+#figure(image( "metrs2.svg"),caption:"Marginal Effective Tax Rates (METRs).")
 
-#figure( image("metrs-hist.svg"), caption:"")
+#figure( image("metrs_hist.svg"), caption:"Marginal Effective Tax Rates (METRs).")
 
 #figure( caption: "METRS")[
    #include("metrs_table.typ")
@@ -71,7 +71,7 @@ you keep all of it. Figures are for the working-age population only, though they
 
 == Inequality<sec:inequality>
 
-#figure(image( "lorenz-curve.svg"), caption:"Lorenz Curves")
+#figure(image( "lorenz_curve.svg"), caption:"Lorenz Curves")
 
 #figure( caption: "Inequality Summary")[#include( "inequality_summary.typ")]
 
@@ -87,13 +87,14 @@ you keep all of it. Figures are for the working-age population only, though they
    #include("sfc.typ")
 ]
 
-== Budget Constraints<sec:budget-constraints>
-
-#figure(
-    image("bcp.svg"),
-    caption: [This is a Budget Constraint.])
-
+// == Budget Constraints<sec:budget-constraints>
+//
+//
+// #figure(
+//    image("bcp.svg"),
+//    caption: [This is a Budget Constraint.])
+//
 == Run Settings<sec:run-settings>
 
-#figure( caption: "Key Run Assumptions ")[#include( "run_settings_summary.typ")]
+#figure( caption: "Key Run Assumptions")[#include( "run_settings_summary.typ")]
 
