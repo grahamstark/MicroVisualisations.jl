@@ -101,6 +101,7 @@ function format_detailed_costs( incs1::DataFrame, incs2::DataFrame, format::Unio
     return labelled_frame_to_table( detailed_cost_dataframe( incs1, incs2 ), format )
 end
 
+#=
 const AVAILABLE_TABLES = OrderedDict([
     :overall_cost_table => "format_overall_cost(summary.income_summary[1],summary.income_summary[2])",
     :costs_table => "",
@@ -117,6 +118,7 @@ const AVAILABLE_TABLES = OrderedDict([
     :poverty_transitions => "format_pov_transitions( summary.povtrans_matrix[2])",
     :run_settings_summary => "format_run_settings_summary( settings )",
     :detailed_costs =>"detailed_cost_dataframe(summary.income_summary[1],summary.income_summary[2])"])
+=#
 
 """
 A Named Tuple with all the formatted outputs (except the budget constraints).
