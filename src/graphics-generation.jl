@@ -735,7 +735,7 @@ const AVAILABLE_GRAPHS = OrderedDict([
 """
 A Named Tuple with all the graphical outputs (except the budget constraints).
 """
-function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple{String,OneEntry}
+function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple
     return (;
         summary_graphs = OneEntry(
             draw_summary_graphs( settings, results, summary ),

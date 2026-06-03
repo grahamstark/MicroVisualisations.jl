@@ -142,7 +142,6 @@ function construct_tables( settings::Settings, results::NamedTuple, summary::Nam
             format_gain_lose("By Household Size",summary.gain_lose[2].hhtype_gl, format ), # x
             "Gain Lose Table By Household Size (counts of individuals)",
             ["pdf", "tpst", "html"] ),
-
         ten_gl = OneEntry(
             format_gain_lose("By Tenure Type",summary.gain_lose[2].ten_gl, format ),
             "Gain Lose Table By Tenure(counts of individuals)",
@@ -178,21 +177,24 @@ function construct_tables( settings::Settings, results::NamedTuple, summary::Nam
             ["pdf", "tpst", "html"]),
         metrs_table = OneEntry(
             format_mr_table( summary.metrs[1], summary.metrs[2], format ),
-            "Summary table of our Marginal Rate estimates (if available)."
+            "Summary table of our Marginal Rate estimates (if available).",
             ["pdf", "tpst", "html"]),
 
         metrs_transitions = OneEntry(
             format_mr_transitions( summary.metrs[2].transmat_df, format ), # x
-            "Transitions table from our Marginal Rate estimates (if available)."
+            "Transitions table from our Marginal Rate estimates (if available).",
             ["pdf", "tpst", "html"]),
-        poverty_summary = format_pov_table( summary.poverty[1], # x
-            summary.poverty[2],
-            summary.child_poverty[1],
-            summary.child_poverty[2],
-            format),
+        poverty_summary = OneEntry(
+            format_pov_table( summary.poverty[1], # x
+                summary.poverty[2],
+                summary.child_poverty[1],
+                summary.child_poverty[2],
+                format),
+            "Short Table with headline poverty measures",
+            ["pdf", "tpst", "html"]),
         poverty_transitions = OneEntry(
             format_pov_transitions( summary.povtrans_matrix_df[2], format), # x
-            "Summary table of our Poverty estimates (if available)."
+            "Summary table of our Poverty estimates (if available).",
             ["pdf", "tpst", "html"]),
         run_settings_summary = OneEntry(
             format_run_settings_summary( settings, format ), # x
@@ -211,6 +213,7 @@ end
 function dump_tables( dir::String, tabs :: NamedTuple, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST})
     ext = to_ext( format )
     for (k,v) in pairs( tabs )
+        println( "on $k")
         open(joinpath( dir, "$(k).$(ext)"), "w") do io
             println( io, v.data )
         end

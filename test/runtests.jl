@@ -39,6 +39,8 @@ bc1, bc2 = getbc( settings, hh, sys[1], sys[2], wage )
 @testset "test_complete" begin
     html_tabs = construct_tables( settings, results, summary, mv.MV_HTML())
     typst_tabs = construct_tables( settings, results, summary, mv.MV_TYPST())
+    println( "tabs OK")
     graphs = construct_images( settings, results, summary, sys )
+    println( "graphs OK")
     path, zippath = mv.phunpackify( settings, graphs, typst_tabs, html_tabs, summary )
 end
