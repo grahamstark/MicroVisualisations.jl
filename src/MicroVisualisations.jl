@@ -98,8 +98,8 @@ function phunpackify(
     typst_tables :: NamedTuple,
     html_tables :: NamedTuple,
     summary::NamedTuple )::Tuple
-    outdir = isnothing(settings.output_dir) ? tempdir() : settings.output_dir
-    path = joinpath(outdir, basiccensor( settings.run_name ), randstring(30))
+    outdir = isnothing( settings.output_dir) ? tempdir() : settings.output_dir
+    path = joinpath( outdir, basiccensor( settings.run_name ), randstring(30))
     mkpath( path )
     # chdir( path )
     STBOutput.dump_summaries( path, settings, summary )
