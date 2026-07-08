@@ -1,7 +1,7 @@
 module MicroVisualisations
 #=
 
-TODO clean up all the include fines and definctions into one source and delete unused constants.
+TODO clean up all the include files and defintions into one source and delete unused constants.
 TODO pdfs of individual tables are messed up; add directory of outputs, add BCs.
 =#
 using Markdown
@@ -98,7 +98,8 @@ function phunpackify(
     typst_tables :: NamedTuple,
     html_tables :: NamedTuple,
     summary::NamedTuple )::Tuple
-    path = joinpath(tempdir(), basiccensor( settings.run_name ), randstring(30))
+    outdir = isnothing(settings.output_dir) ? tempdir() : settings.output_dir
+    path = joinpath(outdir, basiccensor( settings.run_name ), randstring(30))
     mkpath( path )
     # chdir( path )
     STBOutput.dump_summaries( path, settings, summary )
