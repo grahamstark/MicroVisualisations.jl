@@ -16,6 +16,6 @@ function format_headline_numbers( headlines :: NamedTuple )::NamedTuple
         gini = format_and_class_full( pre=headlines.gini1*100, post=headlines.gini2*100, up_is_good=false, formatter=gf1 ),
         pov_headcount = format_and_class_full( pre=headlines.pov_headcount1*100, post=headlines.pov_headcount2*100, up_is_good=false, formatter=gf1 ),
         child_poverty = format_and_class_full( pre=headlines.child_poverty1*100, post=headlines.child_poverty2*100, up_is_good=false, formatter=gf1 ),
-        net_cost = format_and_class_semi( headlines.net_cost; divisor=1_000_000, up_is_good=false, formatter=fm ),
-        net_direct = format_and_class_semi( headlines.net_direct; divisor=1_000_000, up_is_good=false, formatter=fm))
+        net_cost = format_and_class_semi( headlines.net_cost; divisor=1_000_000, up_is_good=true, formatter=fm ),
+        net_direct = format_and_class_semi( headlines.net_direct; divisor=1_000_000, up_is_good=true, formatter=fm))
 end
