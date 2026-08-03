@@ -109,11 +109,11 @@ function detailed_cost_dataframe( inc1 :: DataFrame, inc2 :: DataFrame )
     di = i2 - i1
     names = pretty.(collect((keys(inc1[end,1:98]))))
     return  DataFrame(
-        :Item=names,
-        :"Values(After) £m"=i1,
-        :"Counts(Before) 000s"=c1,
-        :"Amounts(After) £m"=i2,
-        :"Counts(After) 000s"=c2,
-        :"∇ £M" = di,
-        :"∇ Count" = dc)
+        "Item"=>names,
+        "Values(After) £m"=<i1,
+        "Counts(Before) 000s"=>c1,
+        "Amounts(After) £m"=>i2,
+        "Counts(After) 000s"=>c2,
+        "∇ £M" => di,
+        "∇ Count" => dc)
 end
