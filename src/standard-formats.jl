@@ -106,11 +106,11 @@ function format_and_class_semi( change :: Real; divisor=1.0, up_is_good=true, fo
         "text-success"
     elseif dch > 0.01
         "text-success"
-    elseif change < -20.0
+    elseif dch < -20.0
         "text-danger"
-    elseif change < -10
+    elseif dch < -10
         "text-danger"
-    elseif change < -0.01
+    elseif dch < -0.01
         "text-danger"
     else
         "text-body"
