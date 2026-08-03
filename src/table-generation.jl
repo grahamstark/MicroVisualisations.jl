@@ -99,16 +99,6 @@ end
 
 function format_detailed_costs( incs1::DataFrame, incs2::DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     df = detailed_cost_dataframe( incs1, incs2 )
-    df.Count1 ./= 1000
-    df.Count2 ./= 1000
-    df.DCount ./= 1000
-    rename!( df, [
-            :Value1=>"Amounts(Before) £m",
-            :Count1=>"Counts(Before) 000s",
-            :Value2=> "Amounts(After) £m",
-            :Count2=>"Counts(After) 000s",
-            :Dval=>"∇ £M",
-            :Dcount=>"∇ Count"])
     return labelled_frame_to_table( df, format; prec=0 )
 end
 
