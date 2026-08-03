@@ -98,17 +98,17 @@ function pov_dataframe(
 end
 
 """
-FIXME 32:98 supposed to be begin/end of calculated values: CHECK THESE CONSTANTLY
+FIXME 33:98 supposed to be begin/end of calculated values: CHECK THESE CONSTANTLY
 ADD calculated from STBIncomes
 """
 function detailed_cost_dataframe( inc1 :: DataFrame, inc2 :: DataFrame )
-    i1 = collect(values(inc1[1,32:98])) ./ 1_000_000
-    c1 = collect(values(inc1[2,32:98])) ./ 1_000
-    i2 = collect(values(inc2[1,32:98])) ./ 1_000_000
-    c2 = collect(values(inc2[2,32:98])) ./ 1000 # fixme parameterise 98
+    i1 = collect(values(inc1[1,33:98])) ./ 1_000_000
+    c1 = collect(values(inc1[2,33:98])) ./ 1_000
+    i2 = collect(values(inc2[1,33:98])) ./ 1_000_000
+    c2 = collect(values(inc2[2,33:98])) ./ 1000 # fixme parameterise 98
     dc = c2 - c1
     di = i2 - i1
-    names = pretty.(collect((keys(inc1[end,32:98]))))
+    names = pretty.(collect((keys(inc1[end,33:98]))))
     return  DataFrame(
         "Item" => names,
         "Values(After) £m" => i1,
