@@ -99,6 +99,7 @@ end
 
 """
 FIXME 32:98 supposed to be begin/end of calculated values: CHECK THESE CONSTANTLY
+ADD calculated from STBIncomes
 """
 function detailed_cost_dataframe( inc1 :: DataFrame, inc2 :: DataFrame )
     i1 = collect(values(inc1[1,32:98])) ./ 1_000_000
@@ -107,13 +108,13 @@ function detailed_cost_dataframe( inc1 :: DataFrame, inc2 :: DataFrame )
     c2 = collect(values(inc2[2,32:98])) ./ 1000 # fixme parameterise 98
     dc = c2 - c1
     di = i2 - i1
-    names = pretty.(collect((keys(inc1[end,1:98]))))
+    names = pretty.(collect((keys(inc1[end,32:98]))))
     return  DataFrame(
-        "Item"=>names,
-        "Values(After) £m"=<i1,
-        "Counts(Before) 000s"=>c1,
-        "Amounts(After) £m"=>i2,
-        "Counts(After) 000s"=>c2,
+        "Item" => names,
+        "Values(After) £m" => i1,
+        "Counts(Before) 000s" => c1,
+        "Amounts(After) £m" => i2,
+        "Counts(After) 000s" => c2,
         "∇ £M" => di,
         "∇ Count" => dc)
 end
