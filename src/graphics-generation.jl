@@ -751,52 +751,52 @@ A Named Tuple with all the graphical outputs (except the budget constraints).
 """
 function construct_images( settings::Settings, results::NamedTuple, summary::NamedTuple, sys::Vector )::NamedTuple
     return (;
-        @lock lock1 summary_graphs = OneEntry(
-            draw_summary_graphs( settings, results, summary ),
+        summary_graphs = OneEntry(
+            @lock lock1 draw_summary_graphs( settings, results, summary ),
             "4 quadrant summary graph",
             ["svg", "png"] ),
-        @lock lock2 summary_graphs_v2 = OneEntry(
-            draw_summary_graphs_v2( settings, results, summary ),
+        summary_graphs_v2 = OneEntry(
+            @lock lock2 draw_summary_graphs_v2( settings, results, summary ),
             "4 quadrant summary graph, 2nd version",
             ["svg", "png"] ),
-        @lock lock3 taxable_graph = OneEntry(
-            draw_taxable_graph( settings, results, summary, sys ),
+        taxable_graph = OneEntry(
+            @lock lock3 draw_taxable_graph( settings, results, summary, sys ),
             "Graph showing taxable income in bands against marginal tax rates",
             ["svg", "png"] ),
-        @lock lock4 hbai = OneEntry(
-            draw_hbai_graphs( settings, results, summary ),
+        hbai = OneEntry(
+            @lock lock4 draw_hbai_graphs( settings, results, summary ),
             "Comparison graphs of equilvalised income in bands, similar to DWP's HBAI report graph",
             ["svg", "png"] ),
-        @lock lock5 lorenz_curve = OneEntry(
-            draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
+        lorenz_curve = OneEntry(
+            @lock lock5 draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=false ),
             "Pre- and Post- Lorenz Curve",
             ["svg", "png"] ),
-        @lock lock6 lorenz_curve_thumb = OneEntry(
-            draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=true ),
+        lorenz_curve_thumb = OneEntry(
+            @lock lock6 draw_lorenz_curve( summary.quantiles[1][:,1], summary.quantiles[1][:,2], summary.quantiles[2][:,2]; thumbnail=true ),
             "Pre- and Post- Lorenz Curve (thumbnail)",
             ["svg", "png"] ),
-        @lock lock7 deciles = OneEntry(
-            draw_deciles_barplot( summary; thumbnail=false ),
+        deciles = OneEntry(
+            @lock lock7 draw_deciles_barplot( summary; thumbnail=false ),
             "Average Gains and Losses by Eq, Income Decile",
             ["svg", "png"] ),
-        @lock lock8 deciles_thumb = OneEntry(
-            draw_deciles_barplot( summary; thumbnail=true ),
+        deciles_thumb = OneEntry(
+            @lock lock8 draw_deciles_barplot( summary; thumbnail=true ),
             "Average Gains and Losses by Eq, Income Decile, thumbnail version",
             ["svg", "png"] ),
-        @lock lock9 metrs_hist =  OneEntry(
-            draw_metrs_hist( results; thumbnail=false ),
+        metrs_hist =  OneEntry(
+            @lock lock9 draw_metrs_hist( results; thumbnail=false ),
             "Density Plot of pre- and post- Marginal Effective Tax Rates (METRs)",
             ["svg", "png"] ),
-        @lock lock10 metrs = OneEntry(
-            draw_metrs( settings, results ),
+        metrs = OneEntry(
+            @lock lock10 draw_metrs( settings, results ),
             "pre- and post- Marginal Effective Tax Rates (METRs) in 2% intervals",
             ["svg", "png"] ),
-        @lock lock11 metrs2 = OneEntry(
-            draw_metrs2( settings, results ),
+        metrs2 = OneEntry(
+            @lock lock11 draw_metrs2( settings, results ),
             "pre- and post- Marginal Effective Tax Rates (METRs) in 2% intervals, 2 graph version",
             ["svg", "png"] ),
-        @lock lock12 metrs_hist_thumb = OneEntry(
-            draw_metrs_hist( results; thumbnail=true ),
+        metrs_hist_thumb = OneEntry(
+            @lock lock12 draw_metrs_hist( results; thumbnail=true ),
             "Density Plot of pre- and post- Marginal Effective Tax Rates (METRs), thumbnail version",
             ["svg", "png"] ))
 end
