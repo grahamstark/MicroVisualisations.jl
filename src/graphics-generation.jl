@@ -92,8 +92,7 @@ function draw_metrs!(
     title   :: AbstractString,
     bandwidth=1.0,
     sysno::Int,
-    colour
-    )
+    colour )
     edges = collect(0:bandwidth:120)
     ax = Axis( f[sysno,1],
               title=title,
@@ -112,7 +111,7 @@ function draw_metrs!(
     indp.metr = max.(0.0, indp.metr )
     mmean = mean( indp.metr, Weights( indp.weight ))
     mmedian = median( indp.metr, Weights( indp.weight ))
-    @show indp mmean mmedian
+    # @show indp mmean mmedian
     h = hist!(ax,
               indp.metr;
               weights=indp.weight,
