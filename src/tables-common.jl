@@ -1,6 +1,6 @@
 #=
 
-Constants shared between all formats of table we support
+Constants and functions shared between all formats of table we support
 
 =#
 
@@ -112,7 +112,7 @@ function rgb2typ( r :: RGB )::String
 end
 
 """
-
+This adds columns for 'before' on the left and 'after' and a row at the top for 'after' to make it a wee bit easier to format using PrettyTables.
 """
 function fixup_transitions_matrix( indf :: DataFrame )::DataFrame
     df = copy( indf )
@@ -125,6 +125,7 @@ function fixup_transitions_matrix( indf :: DataFrame )::DataFrame
 end
 
 """
+FIXME not used anymore since we now produce the crosstab in ScotBen the right way around.
 Switch one of our crosstab dataframes from good->bad to bad->good, preserving the totals row/col and the 1st row/col.
 returns a copy, rather than changing in-place.
 """
