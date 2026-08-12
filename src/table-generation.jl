@@ -34,7 +34,7 @@ end
 
 function format_mr_transitions( df :: DataFrame, format::Union{MV_MARKDOWN,MV_HTML,MV_TYPST} )::String
     # dfm = reverse_crosstab( df ) # bad -> good for MRs
-    dfm = fixup_transitions_matrix( dfm )
+    dfm = fixup_transitions_matrix( df )
     return format_crosstab(dfm, format )
 end
 
