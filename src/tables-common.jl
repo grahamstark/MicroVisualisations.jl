@@ -67,7 +67,7 @@ function html_id_crosstab_fm(v, r, c)
     return if c in [1,2] || r in [1,2] || s == "-"
         s
     else
-        "<span data-row='$r' data-col='$c'>$s</span>
+        "<span data-row='$r' data-col='$c'>$s</span>"
     end
 end
 
