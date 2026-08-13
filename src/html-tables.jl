@@ -87,7 +87,7 @@ function format_crosstab(df :: DataFrame, ::MV_HTML )
         column_labels = fill( "", numcols ), # turn off labels
         table_format = HTML_TABLE_FORMAT,
         highlighters = [body_hl],
-        formatters=[html_id_crosstab_fm] )
+        formatters=[crosstab_fm] )
     return String(take!(io))
 end
 

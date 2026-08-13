@@ -61,6 +61,7 @@ end
 """
 html version - wrap crosstab_fm output in a span that allows retrieval of row/col - so e.g. we
 can pop up examples of changed hhlds in cells
+FIXME doesn't work - html tags escaped
 """
 function html_id_crosstab_fm(v, r, c)
     s = crosstab_fm(v, r, c)
