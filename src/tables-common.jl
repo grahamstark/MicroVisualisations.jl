@@ -58,6 +58,19 @@ function crosstab_fm(v, r, c)
     end
 end
 
+"""
+html version - wrap crosstab_fm output in a span that allows retrieval of row/col - so e.g. we
+can pop up examples of changed hhlds in cells
+"""
+function html_id_crosstab_fm(v, r, c)
+    s = crosstab_fm(v, r, c)
+    return if c in [1,2] || r in [1,2] || s == "-"
+        s
+    else
+        "<span data-row='$r' data-col='$c'>$s</span>
+    end
+end
+
 const COST_UP_GOOD = [1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,1]
 
 """
