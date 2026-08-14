@@ -156,9 +156,10 @@ end
 * delete 'less than 0' col at end if it's all zeros
 * check the sums of the last-but-one row&col
 """
-function cleanup_mr_crosstab!(df :: AbstractDataFrame )
+function cleanup_mr_crosstab(dfc :: AbstractDataFrame )
+    df = deepcopy(dfc)
     # delete 'not computed' row and col - 1st data col (2nd overall) & 1st row
-    ncsum = df[1,end] # total not computed - sve before we delete
+    ncsum = df[1,end] # total not computed - save before we delete
     @show ncsum
     select!(df,Not(2))
     deleteat!(df,1)
@@ -171,6 +172,7 @@ function cleanup_mr_crosstab!(df :: AbstractDataFrame )
     end
     # recalculate the overall total since 'not calculated' row is now dropped
     df[end,end] -= ncsum;
+    df
 end
 
 """
