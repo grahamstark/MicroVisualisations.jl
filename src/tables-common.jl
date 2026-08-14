@@ -152,6 +152,27 @@ function reverse_crosstab( df :: AbstractDataFrame )::DataFrame
 end
 
 """
+* delete 'not computed' row and col - 1st data col (2nd overall) & 1st row
+* delete 'less than 0' col at end if it's all zeros
+* check the sums of the last-but-one row&col
+"""
+function cleanup_mr_crosstab!(df :: AbstractDataFrame )
+    # delete 'not computed' row and col - 1st data col (2nd overall) & 1st row
+    ncsum = df[1,end]
+    select!(df,Not(2))
+    deleteat!(df,1)
+    l = size(df)[2]
+    # optionally delete 'less than 0' col at end if it's all zeros
+    #check the sums of the last-but-one row&col
+    if (df[end-1,end]+df[end-1,end]) == 0
+        select!(df,Not(l-1))
+        deleteat!(df,l-2)
+    end
+    # recalculate the overall total since 'not calculated' row is now dropped
+    df[end,end] -= ncsum;
+end
+
+"""
 Green->Red pallette In Julia Color.jl RGBs
 """
 good_to_bad_pallette( num_grades :: Integer )::Vector = range( GOOD_COLOUR, stop=BAD_COLOUR, length=num_grades )
