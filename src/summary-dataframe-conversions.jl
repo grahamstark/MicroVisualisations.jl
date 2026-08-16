@@ -89,7 +89,7 @@ function pov_dataframe(
     ch1 :: GroupPoverty, 
     ch2 :: GroupPoverty )
     println( "got child poverty[1] as $(ch1)")            
-    names = ["Headcount (All)", "Child Poverty", "Gap", "FGT(α=2)", "Watts", "Sen", "Shorrocks"]
+    names = ["Headcount (All)", "Child Poverty", "Gap", "Poverty Severity", "Watts", "Sen", "Shorrocks"]
     # child povs already %s ..
     v1 = [pov1.headcount, ch1.prop, pov1.gap, pov1.foster_greer_thorndyke[5], pov1.watts, pov1.sen, pov1.shorrocks]  .* 100
     v2 = [pov2.headcount, ch2.prop, pov2.gap, pov2.foster_greer_thorndyke[5], pov2.watts, pov2.sen, pov2.shorrocks]  .* 100
