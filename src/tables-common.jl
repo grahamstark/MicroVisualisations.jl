@@ -13,7 +13,7 @@ to_ext( ::MV_HTML)="html"
 to_ext( ::MV_TYPST)="typ"
 to_ext( ::MV_MARKDOWN)="md"
 
-const DEFAULT_FONT = "Urbanist"
+const DEFAULT_FONT = "Liberation Sans Narrow" # "Urbanist"
 
 # colo[u]rs for cell backgrounds, borrowed from standard Bootstrap 5.
 BG_WHITE = "#ffffff"

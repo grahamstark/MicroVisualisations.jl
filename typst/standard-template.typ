@@ -9,7 +9,7 @@
 #show link: underline
 #show link: set text(blue)
 
-#let table_fonts = ("BellCentennial LT Address","Arial")
+#let table_fonts = ("Liberation Sans Narrow","BellCentennial LT Address","Arial")
 #show figure.caption: set text( size:6pt, fill:rgb("#444466"))
 #show table. cell: set text( size:6pt, font:table_fonts )
 
